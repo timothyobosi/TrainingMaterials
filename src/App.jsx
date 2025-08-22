@@ -1,8 +1,17 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import './App.css'
 
 function App() {
   const [currentStep, setCurrentStep] = useState(0) //0=start , 1-4 = Audio steps, 5 =done
+
+
+  useEffect(()=>{
+    //load progress from sessionStorage on mount
+    const savedProgress  = JSON.parse(sessionStorage.getItem('britamTrainingProgress')) || {};
+    if(savedProgress.currentStep) setCurrentStep(savedProgress.currentStep);
+    //save progress on change
+    sessionStorage.setItem('britamTrainingProgress', JSON.stringify({currentStep}))
+  },[currentStep])
 
   const handleStart = () => setCurrentStep(1);
   const handleNext = () => setCurrentStep((prev) => prev +1)
