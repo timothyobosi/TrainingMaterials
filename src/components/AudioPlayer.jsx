@@ -1,8 +1,50 @@
-import React from 'react'
+import React, { useEffect, useRef } from 'react'
 
-const AudioPlayer = () => {
+const AudioPlayer = ({src, onEnded, onRestart,isPlaying, onPlayPause}) => {
+  const audioRef = useRef(null);
+
+  useEffect(()=>{
+    if (audioRef.current){
+      if(isPlaying){
+        audioRef.current();
+      }else{
+        audioRef.current.pause();
+      }
+    }
+  },[isPlaying]);
+
+
+  useEffect(()=>{
+    const audio = audioRef.current;
+    if (audio){
+      const handleEnded = () => onEnded();
+      audio.addEventListener('ended', handleEnded);
+      return () => audio.removeEventListener('ended', handleEnded);
+    }
+  },[onEnded]);
+  
+  const handleRestart = () => {
+    if (audioRef.current) {
+      audioRef.current.currentTime = 0;
+      onRestart();
+      audioRef.current.play();      
+    }
+  }
+
+  const handlePlayPause = () =>{
+    if(audioRef.current){
+      onPlayPause(!isPlaying);
+    }
+  }
+
   return (
-    <div>AudioPlayer placeholder</div>
+    <div className="audio-player">
+      <audio ref={audioRef} src={src} preload="auto"/>
+      <button onClick={handlePlayPause}>{isPlaying ? 'Pause' : 'Play'}</button>
+      <button onClick={handleRestart}>Restart</button>
+      <div>Progess:{audioRef.current ? Math.round(audioRef.current.currentTime) : 0}</div>
+      
+    </div>
   )
 }
 
