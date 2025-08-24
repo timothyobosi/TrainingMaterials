@@ -1,4 +1,5 @@
 import React, { useEffect, useRef } from 'react'
+import './AudioPlayer.css'
 
 const AudioPlayer = ({src, onEnded, onRestart,isPlaying, onPlayPause}) => {
   const audioRef = useRef(null);
