@@ -7,7 +7,7 @@ const AudioPlayer = ({src, onEnded, onRestart,isPlaying, onPlayPause}) => {
   useEffect(()=>{
     if (audioRef.current){
       if(isPlaying){
-        audioRef.current();
+        audioRef.current.play().catch((error) => console.log('Play failed:',error));
       }else{
         audioRef.current.pause();
       }
@@ -43,7 +43,7 @@ const AudioPlayer = ({src, onEnded, onRestart,isPlaying, onPlayPause}) => {
       <audio ref={audioRef} src={src} preload="auto"/>
       <button onClick={handlePlayPause}>{isPlaying ? 'Pause' : 'Play'}</button>
       <button onClick={handleRestart}>Restart</button>
-      <div>Progess:{audioRef.current ? Math.round(audioRef.current.currentTime) : 0}</div>
+      <div>Progress:{audioRef.current ? Math.round(audioRef.current.currentTime) : 0}</div>
       
     </div>
   )

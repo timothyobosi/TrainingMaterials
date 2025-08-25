@@ -6,9 +6,9 @@ const Button = ({children, onClick, disabled}) => {
     onClick = {onClick}
         diabled = {disabled}
         style ={{
-            padding: '',
-            margin: '',
-            fontsize: '',
+            padding: '0.5rem 1rem',
+            margin: '0.5rem',
+            fontsize: '1rem',
             cursor: disabled ? 'not-allowed':'pointer',
             backgroundcolor:disabled ? '#cccccc' : '#4CAF50',
             color: 'white',

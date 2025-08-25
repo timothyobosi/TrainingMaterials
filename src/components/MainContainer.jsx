@@ -7,6 +7,7 @@ const MainContainer = ({children}) => {
         display:'flex',
         flexDirection:'column',
         alignItems:'center',
+        justifyContent:'center',
         minHeight:'100vh',
         padding:'1rem',
         textAlign:'center',
