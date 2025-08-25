@@ -5,6 +5,7 @@ const AudioPlayer = ({src, onEnded, onRestart,isPlaying, onPlayPause}) => {
   const audioRef = useRef(null);
 
   const [progress, setProgress] = useState(0);
+  const [duration, setDuration] = useState(0);
 
   useEffect(()=>{
     if (audioRef.current){
@@ -21,11 +22,36 @@ const AudioPlayer = ({src, onEnded, onRestart,isPlaying, onPlayPause}) => {
     const audio = audioRef.current;
     if (audio){
       const handleEnded = () => onEnded();
+      const handleLoadedMetadata = () => setDuration(audio.duration);
       audio.addEventListener('ended', handleEnded);
-      return () => audio.removeEventListener('ended', handleEnded);
+      audio.addEventListener('loadedmetadata',handleLoadedMetadata);
+      return () => {
+        audio.removeEventListener('ended', handleEnded);
+        audio.removeEventListener('loadedmetadate', handleLoadedMetadata);
+      }
     }
   },[onEnded]);
+
+  useEffect(() =>{
+    const audio =audioRef.current;
+    if (audio) {
+      const updateProgress = () => setProgress(audio.currentTime);
+      audio.addEventListener('timeupdate', updateProgress);
+      return () => audio.removeEventListener('timeupdate',updateProgress);      
+    }
+  },[]);
   
+    
+  useEffect(()=>{
+    const audio = audioRef.current;
+    if (audio) {
+      const updateProgress = () => setProgress(audio.currentTime);
+      audio.addEventListener('timeupdate', updateProgress);
+      return () => audio.removeEventListener('timeupdate', updateProgress);      
+    }
+  },[])
+
+
   const handleRestart = () => {
     if (audioRef.current) {
       audioRef.current.currentTime = 0;
@@ -39,33 +65,39 @@ const AudioPlayer = ({src, onEnded, onRestart,isPlaying, onPlayPause}) => {
       onPlayPause(!isPlaying);
     }
   }
+  
 
-  useEffect(()=>{
-    const audio = audioRef.current;
-    if (audio) {
-      const updateProgress = () => setProgress(audio.currentTime);
-      audio.addEventListener('timeupdate', updateProgress);
-      return () => audio.removeEventListener('timeupdate', updateProgress);      
-    }
-  },[])
+  const formatTime = (time) => {
+    const minutes = Math.floor(time/60);
+    const seconds = Math.floor(time % 60);
+    return `${minutes}:{seconds < 10 ? '0' :''}${seconds}`;
+  }
 
   return (
     <div className="audio-player">
-      <audio ref={audioRef} src={src} preload="auto"/>
-      <div className="progress-bar" style={{width: '100%', backgroundColor:'#e0e0e0'}}>
-        <div 
-        style={{
-          height: '10px',
-          backgroundColor: '',
-          width: `${(progress/(audioRef.current?.duration||1))*100}`,
-          pointerEvents:'none', //Non-Seekable
-        }}
-        />
+      <audio ref={audioRef} src={src} preload="auto" />
+      <div className="progress-container">
+        <div className="progress-bar">
+          <div
+            className="progress-fill"
+            style={{
+              width: `${(progress / (audioRef.current?.duration || 1)) * 100}%`
+            }}
+          />
+        </div>
       </div>
-      <button onClick={handlePlayPause}>{isPlaying ? 'Pause' : 'Play'}</button>
-      <button onClick={handleRestart}>Restart</button>
-      <div>Progress:{audioRef.current ? Math.round(audioRef.current.currentTime) : 0}</div>
-      
+      <div className="time-display">
+        {formatTime(progress)} / {formatTime(duration)}
+      </div>
+      <div className="controls">
+        <button onClick={handlePlayPause} aria-label={isPlaying ? 'Pause' : 'Play'}>
+          {isPlaying ? 'Pause' : 'Play'}
+        </button>
+        <button onClick={handleRestart} aria-label="Restart audio">
+          Restart
+        </button>
+      </div>
+
     </div>
   )
 }
