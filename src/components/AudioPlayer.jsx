@@ -28,7 +28,7 @@ const AudioPlayer = ({src, onEnded, onRestart,isPlaying, onPlayPause}) => {
     if (audioRef.current) {
       audioRef.current.currentTime = 0;
       onRestart();
-      audioRef.current.play();      
+      audioRef.current.play().catch((error) => console.log('Play failed:',error));      
     }
   }
 
