@@ -19,7 +19,7 @@ function App() {
   const [audioCompleted, setAudioCompleted] = useState({1:false,2:false,3:false,4:false})
 
   useEffect(() => {
-    const savedAudioData = JSON.parse(sessionStorage.getItem('britamTrainingProgress')) || {};
+    const savedAudioData = JSON.parse(sessionStorage.getItem('britamTrainingAudioData')) || {};
     if (savedAudioData) setAudioData(savedAudioData);
 
     //parse query params on mount
@@ -64,7 +64,7 @@ function App() {
   return (
     <MainContainer>
       <h1>Britam Training</h1>
-      <p>Listen To the audio until it ends, then click Next</p>
+      <p>Listen to the audio until it ends, then click Next</p>
       {currentStep === 0 && <Button onClick={handleStart}> Start </Button>}
       {currentStep > 0 && currentStep < 5 && currentAudio && (
         <div>
@@ -83,7 +83,7 @@ function App() {
       )}
       {currentStep === 5 && (
         <div>
-          <p> All Audios complete!</p>
+          <p> All audios complete!</p>
           <Button onClick={handleReturn}> Return</Button>
         </div>
       )}
