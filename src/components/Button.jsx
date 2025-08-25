@@ -4,7 +4,7 @@ const Button = ({children, onClick, disabled}) => {
   return (
     <button
     onClick = {onClick}
-        diabled = {disabled}
+        disabled = {disabled}
         style ={{
             padding: '0.5rem 1rem',
             margin: '0.5rem',
