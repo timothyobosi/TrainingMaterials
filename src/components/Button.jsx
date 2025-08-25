@@ -6,15 +6,20 @@ const Button = ({children, onClick, disabled}) => {
     onClick = {onClick}
         disabled = {disabled}
         style ={{
-            padding: '0.5rem 1rem',
+            padding: '0.6rem 1.4rem',
             margin: '0.5rem',
             fontsize: '1rem',
             cursor: disabled ? 'not-allowed':'pointer',
-            backgroundcolor:disabled ? '#cccccc' : '#4CAF50',
+            background: disabled ? '#cccccc' : 'linear-gradient(90deg, #4CAF50,#66BB6A)',
             color: 'white',
             border:'none',
-            borderRadius:'4px,'
-        }}    
+            borderRadius:'8px,',
+            transition:'transform 0.2s, background 0.3s',
+        }}   
+        onMouseOver={!disabled ? (e) => (e.target.style.background='linear-gradient(90deg, #45a049,#66BB6A)'):undefined}
+        onMouseOut={!disabled ? (e) => (e.target.style.background='linear-gradient(90deg, #45a049,#66BB6A)'):undefined}
+        onFocus={!disabled ? (e) => (e.target.style.background='linear-gradient(90deg, #45a049,#66BB6A)'):undefined}
+        onBlur={!disabled ? (e) => (e.target.style.background='linear-gradient(90deg, #45a049,#66BB6A)'):undefined} 
     >
         {children}        
     </button>
