@@ -65,18 +65,28 @@ function App() {
     <MainContainer>
       <h1>Britam Training</h1>
       <p>Listen to the audio until it ends, then click Next</p>
-      {currentStep === 0 && <Button onClick={handleStart}> Start </Button>}
+      {currentStep === 0 && (
+        <Button onClick={handleStart} aria-label ="Start training">
+          Start
+        </Button>
+        )
+      }
       {currentStep > 0 && currentStep < 5 && currentAudio && (
         <div>
           <p>Audio {currentStep} of 4</p>
           <AudioPlayer
-          src={currentAudio}
-          onEnded={handleEnded}
-          onRestart={handleRestart}
-          isPlaying={isPlaying}
-          onPlayPause={handlePlayPause}
+            src={currentAudio}
+            onEnded={handleEnded}
+            onRestart={handleRestart}
+            isPlaying={isPlaying}
+            onPlayPause={handlePlayPause}
+            aria-label={`Audio ${currentStep} player`}
           />
-          <button onClick={handleNext} disabled={!audioCompleted[currentStep]} >
+          <button
+            onClick={handleNext}
+            disabled={!audioCompleted[currentStep]}
+            aria-label={`Next audio, disabled until audio ${currentStep} completes`}
+          >
             Next
           </button>
         </div>
@@ -84,7 +94,9 @@ function App() {
       {currentStep === 5 && (
         <div>
           <p> All audios complete!</p>
-          <Button onClick={handleReturn}> Return</Button>
+          <Button onClick={handleReturn} aria-label="Return to main page"> 
+            Return
+          </Button>
         </div>
       )}
     </MainContainer>
