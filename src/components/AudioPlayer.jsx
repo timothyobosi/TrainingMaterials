@@ -27,7 +27,7 @@ const AudioPlayer = ({src, onEnded, onRestart,isPlaying, onPlayPause}) => {
       audio.addEventListener('loadedmetadata',handleLoadedMetadata);
       return () => {
         audio.removeEventListener('ended', handleEnded);
-        audio.removeEventListener('loadedmetadate', handleLoadedMetadata);
+        audio.removeEventListener('loadedmetadata', handleLoadedMetadata);
       }
     }
   },[onEnded]);
@@ -45,6 +45,7 @@ const AudioPlayer = ({src, onEnded, onRestart,isPlaying, onPlayPause}) => {
   useEffect(()=>{
     const audio = audioRef.current;
     if (audio) {
+      console.log('Audio duration:',audio.duration);
       const updateProgress = () => setProgress(audio.currentTime);
       audio.addEventListener('timeupdate', updateProgress);
       return () => audio.removeEventListener('timeupdate', updateProgress);      

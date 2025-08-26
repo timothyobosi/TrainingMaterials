@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react'
 import './App.css'
-import { parseQuery } from './utils/parseQuery'
 import MainContainer from './components/MainContainer'
 import Button from './components/Button'
 import AudioPlayer from './components/AudioPlayer'
+import { mockAudioData } from './utils/mockData'
 
 function App() {
   const [currentStep, setCurrentStep] = useState(0) //0=start , 1-4 = Audio steps, 5 =done
@@ -12,34 +12,49 @@ function App() {
     audio2: null,
     audio3: null,
     audio4: null,
-    returnUrl: null
+    returnUrl: null,
   })
 
   const [isPlaying, setIsPlaying] = useState(false);
-  const [audioCompleted, setAudioCompleted] = useState({1:false,2:false,3:false,4:false})
+  const [audioCompleted, setAudioCompleted] = useState({
+    1: false,
+    2: false,
+    3: false,
+    4: false
+  })
 
+  //load data on mount
   useEffect(() => {
-    const savedAudioData = JSON.parse(sessionStorage.getItem('britamTrainingAudioData')) || {};
-    if (savedAudioData) setAudioData(savedAudioData);
-
-    //parse query params on mount
-    const queryData = parseQuery();
-    setAudioData(queryData);
-    sessionStorage.setItem('britamTrainingAudioData', JSON.stringify(queryData))
-
     //load progress from sessionStorage on mount
     const savedProgress = JSON.parse(sessionStorage.getItem('britamTrainingProgress')) || {};
+    const savedAudioData = JSON.parse(sessionStorage.getItem('britamTrainingAudioData')) || {};
+
+    //Use saved progress or default
     if (savedProgress.currentStep) setCurrentStep(savedProgress.currentStep);
-    //save progress on change
-    sessionStorage.setItem('britamTrainingProgress', JSON.stringify({ currentStep }))
-  }, [currentStep])
+    if (savedProgress.audioCompleted) setAudioCompleted(savedProgress.audioCompleted)
+
+    //if nothing saved, use Mockdata    
+    //Use mock data with actual audio files
+    const dataToUse = Object.keys(savedAudioData).length ? savedAudioData : mockAudioData
+    setAudioData(dataToUse);
+    sessionStorage.setItem('britamTrainingAudioData', JSON.stringify(dataToUse));
+  }, [])
+
+  //save progress whenever things change
+  useEffect(() =>{
+    sessionStorage.setItem('britamTrainingProgress',JSON.stringify({currentStep, audioCompleted}))
+  },[currentStep,audioCompleted])
+
 
   const handleStart = () => {
     setIsPlaying(true);
     setCurrentStep(1);
   };
 
-  const handleNext = () => setCurrentStep((prev) => prev + 1);
+  const handleNext = () => {
+    if (currentStep<4) setCurrentStep((prev) => prev + 1);
+    else setCurrentStep(5)
+  }
   const handleReturn = () => {
     sessionStorage.removeItem('britamTrainingProgress');
     sessionStorage.removeItem('britamTrainingAudioData');
@@ -47,29 +62,28 @@ function App() {
   }
 
   const handlePlayPause = (play) => setIsPlaying(play);
-  const handleEnded = () =>{
-    setAudioCompleted((prev)=>({...prev,[currentStep]:true}));
-    setIsPlaying(false);
-    if(currentStep <4) setCurrentStep((prev)=>prev+1);
-    else setCurrentStep(5);
-  }
 
   const handleRestart = () => {
-    setAudioCompleted((prev) => ({...prev,[currentStep]:false}));
+    setAudioCompleted((prev) => ({ ...prev, [currentStep]: false }));
     setIsPlaying(true);
+  }
+
+  const handleEnded = () =>{
+    setAudioCompleted(prev =>({...prev, [currentStep]:true}))
+    setIsPlaying(false)
   }
 
   const currentAudio = audioData[`audio${currentStep}`];
 
   return (
     <MainContainer>
-      <h1>Britam Training</h1>
+      <h1>Britam Agent Training</h1>
       <p>Listen to the audio until it ends, then click Next</p>
       {currentStep === 0 && (
-        <Button onClick={handleStart} aria-label ="Start training">
+        <Button onClick={handleStart} aria-label="Start training">
           Start
         </Button>
-        )
+      )
       }
       {currentStep > 0 && currentStep < 5 && currentAudio && (
         <div>
@@ -94,7 +108,7 @@ function App() {
       {currentStep === 5 && (
         <div>
           <p> All audios complete!</p>
-          <Button onClick={handleReturn} aria-label="Return to main page"> 
+          <Button onClick={handleReturn} aria-label="Return to main page">
             Return
           </Button>
         </div>
