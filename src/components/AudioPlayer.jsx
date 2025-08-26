@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react'
 import './AudioPlayer.css'
+import { FaPause, FaPlay, FaRedo } from 'react-icons/fa';
 
 const AudioPlayer = ({src, onEnded, onRestart,isPlaying, onPlayPause}) => {
   const audioRef = useRef(null);
@@ -91,11 +92,25 @@ const AudioPlayer = ({src, onEnded, onRestart,isPlaying, onPlayPause}) => {
         {formatTime(progress)} / {formatTime(duration)}
       </div>
       <div className="controls">
+        {/* Play & pause toggle */}
         <button onClick={handlePlayPause} aria-label={isPlaying ? 'Pause' : 'Play'}>
-          {isPlaying ? 'Pause' : 'Play'}
+          {isPlaying ? (
+            <>
+            <FaPause size={28}/>
+            <span>Pause</span>
+            </>
+            ):(
+              <>
+              <FaPlay size={28} />
+              <span>Play</span>
+              </>            
+          )}
         </button>
+
+        {/* Restart Button*/}
         <button onClick={handleRestart} aria-label="Restart audio">
-          Restart
+          <FaRedo size={28}/>
+          <span>Restart</span>
         </button>
       </div>
 
