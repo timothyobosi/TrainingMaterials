@@ -1,8 +1,8 @@
 .audio-player{
     width: 450px;
     margin: 1rem 0;
-    padding: 1rem;
-    background: linear-gradient(135deg,#2a2a2a,#3a3a3a);
+    padding: 1.5rem;
+    background: linear-gradient(135deg,#2a2a2a,rgba(255, 255, 255, 0.1));
     border-radius: 12px;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
     
@@ -36,21 +36,41 @@
 .controls{
     display: flex;
     justify-content: center;
-    gap: 2rem;
+    gap: 8rem;
     margin-top: 1rem;
 }
 
+.control-item{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.4rem;
+}
+
+.control-item span{
+    color: #e0e0e0;
+    font-size: 0.85rem;
+    text-align: center;
+}
+
+/* Round button style */
 .audio-player button{
-    margin: 0 0.5rem;
-    padding: 0.5rem 1.2rem;
-    font-size: 1rem;
-    cursor: pointer;
-    background: linear-gradient(90deg,#4CAF50, #66BB6A);    
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 65px;
+    height: 65px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #4CAF50, #66BB6A);
     color: white;
     border: none;
-    border-radius: 4px;
+    cursor: pointer;
     transition: transform 0.2s, background 0.3s;
+    box-shadow: 0 3px 6px rgba(0,0,0,0.25);
+    font-size: 1.2rem;
 }
+
+
 
 .audio-player button:hover:not(:disabled){
     transition: scale(1.05);

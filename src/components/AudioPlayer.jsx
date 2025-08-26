@@ -92,26 +92,21 @@ const AudioPlayer = ({src, onEnded, onRestart,isPlaying, onPlayPause}) => {
         {formatTime(progress)} / {formatTime(duration)}
       </div>
       <div className="controls">
-        {/* Play & pause toggle */}
-        <button onClick={handlePlayPause} aria-label={isPlaying ? 'Pause' : 'Play'}>
-          {isPlaying ? (
-            <>
-            <FaPause size={28}/>
-            <span>Pause</span>
-            </>
-            ):(
-              <>
-              <FaPlay size={28} />
-              <span>Play</span>
-              </>            
-          )}
-        </button>
+        <div className="control-item">
+          {/* Play & pause toggle */}
+          <button onClick={handlePlayPause}>
+            {isPlaying ? <FaPause size={28} /> : <FaPlay size={28} />}
+          </button>
+          <span>{isPlaying ? "Pause" : "Play"}</span>
+        </div>
 
-        {/* Restart Button*/}
-        <button onClick={handleRestart} aria-label="Restart audio">
-          <FaRedo size={28}/>
+        <div className="control-item">
+          {/* Restart Button*/}
+          <button onClick={handleRestart} >
+            <FaRedo size={28} />
+          </button>
           <span>Restart</span>
-        </button>
+        </div>
       </div>
 
     </div>
