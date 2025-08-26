@@ -1,12 +1,11 @@
 .audio-player{
+    width: 450px;
     margin: 1rem 0;
     padding: 1rem;
     background: linear-gradient(135deg,#2a2a2a,#3a3a3a);
     border-radius: 12px;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-    max-width: 400px;
-    width:100%;
-    text-align: center;
+    
 }
 
 .progress-container{
@@ -30,7 +29,8 @@
 .time-display{
     font-size: 0.9rem;
     color: #e0e0e0;
-    margin-top: 0.5rem;
+    margin-top: 4px;
+    text-align: left;
 }
 
 .controls{
