@@ -5,7 +5,7 @@ import Button from './components/Button'
 import AudioPlayer from './components/AudioPlayer'
 import { mockAudioData } from './utils/mockData'
 
-const baseURL = 'https://brm-partners.britam.com/api/Agents'
+const baseURL = '/api/Agents'
 
 function App() {
   const [mode, setMode] = useState('login')
@@ -72,10 +72,11 @@ function App() {
     if (!email || !password) return setError('Please enter email and password')
     try {
       const res = await fetch(`${baseURL}/login`, {
-        method: 'POST',
-        headers: { 'content-Type': 'application/json' },
-        body: JSON.stringify({ email, password }),
-      })
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({ email, password }),
+});
+
       const data = await res.json()
       if (res.ok && data.status === 'Success') {
         setToken(data.token)
@@ -104,10 +105,10 @@ function App() {
         body: JSON.stringify({ email, password })
       })
       const data = await res.json()
-      if (res.ok && data.status === 'Success'){
+      if (res.ok && data.status === 'Success') {
         setToken(data.token)
         setMode('training')
-      }else{
+      } else {
         setError(data.message || 'Failed to set password')
       }
 
@@ -138,32 +139,51 @@ function App() {
     }
   }
 
+  const handleCompleteReset = async () => {
+    clearMessages()
+    try {
+      const res = await fetch(`${baseURL}/complete-reset-password`, {
+        method: 'POST',
+        headers: { 'content-Type': 'application/json' },
+        body: JSON.stringify({ token: resetToken, password }),
+      })
+      const data = await res.json()
+      if (res.ok) {
+        setSuccess('password reset successfully. Please login')
+        setTimeout(() => setMode('login'), 3000)
+      } else {
+        setError(data.message || 'Failed to reser password')
+      }
+    } catch (e) {
+      setError('Network error' + e.message)
+    }
+  }
 
   const handleChangePassword = async () => {
     clearMessages()
-    if(!oldPassword || password || !confirmPassword) return setError('Please fill all fields')
-    if(password !== confirmPassword) return setError('New passwords do not match')
-      try{
-    const res = await fetch(`${baseURL}/change-password`,{
-      method:'POST',
-      headers:{
-        'Content-Type' : 'application/json',
-        'Authorization' : `Bearer ${token}`
-      },
-      body: JSON.stringify({oldPassword, newPassword:password})
-    })
-    const data =  await res.json()
-    if(res.ok){
-      setSuccess('Password changed successfully')
-      setOldPassword('')
-      setPassword('')
-      setconfirmPassowrd('')
-      setTimeout(() => setMode('training'), 2000)
-    }else{
-      setError(data.message || 'Failed to change password')
-    }
-    }catch(e){
-      setError('Network error' +e.message)
+    if (!oldPassword || password || !confirmPassword) return setError('Please fill all fields')
+    if (password !== confirmPassword) return setError('New passwords do not match')
+    try {
+      const res = await fetch(`${baseURL}/change-password`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ oldPassword, newPassword: password })
+      })
+      const data = await res.json()
+      if (res.ok) {
+        setSuccess('Password changed successfully')
+        setOldPassword('')
+        setPassword('')
+        setconfirmPassowrd('')
+        setTimeout(() => setMode('training'), 2000)
+      } else {
+        setError(data.message || 'Failed to change password')
+      }
+    } catch (e) {
+      setError('Network error' + e.message)
     }
   }
 
@@ -198,41 +218,182 @@ function App() {
 
   return (
     <MainContainer>
-      <h1>Britam Agent Training</h1>
-      <p>Listen to the audio until it ends, then click Next</p>
-      {currentStep === 0 && (
-        <Button onClick={handleStart} aria-label="Start training">
-          Start
-        </Button>
-      )
-      }
-      {currentStep > 0 && currentStep < 5 && currentAudio && (
-        <div>
-          <p>Audio {currentStep} of 4</p>
-          <AudioPlayer
-            src={currentAudio}
-            onEnded={handleEnded}
-            onRestart={handleRestart}
-            isPlaying={isPlaying}
-            onPlayPause={handlePlayPause}
-            aria-label={`Audio ${currentStep} player`}
+      {mode === 'login' && (
+        <div className="auth-card">
+          <h1>Britam Agent Login</h1>
+          <input
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="Email"
+            aria-label="Email input"
           />
-          <button
-            onClick={handleNext}
-            disabled={!audioCompleted[currentStep]}
-            aria-label={`Next audio, disabled until audio ${currentStep} completes`}
+          <input
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            placeholder="Password"
+            aria-label="Password input"
+          />
+          <Button onClick={handleLogin} disabled={!email || !password} aria-label="Login button">
+            Login
+          </Button>
+          <p
+            style={{ cursor: 'pointer', textDecoration: 'underline', marginTop: '1rem' }}
+            onClick={() => setMode('resetPassword')}
+            aria-label="Forgot password link"
           >
-            Next
-          </button>
+            Forgot Password
+          </p>
+          {error && <p className="error">{error}</p>}
+          {success && <p className="success">{success}</p>}
         </div>
       )}
-      {currentStep === 5 && (
-        <div>
-          <p> All audios complete!</p>
-          <Button onClick={handleReturn} aria-label="Return to main page">
-            Return
+      {mode === 'setPassword' && (
+        <div className="auth-card">
+          <h1> Set Password</h1>
+          <p>For email:{email}</p>
+          <input
+            type="password"
+            value={confirmPassword}
+            onChange={(e) => setconfirmPassowrd(e.target.value)}
+            placeholder="New password"
+            aria-label="New password input"
+          />
+          <Button onClick={handleSetPassword} disabled={!password || !confirmPassword} aria-label="Set password button">
+            Set Password
           </Button>
+          {error && <p className="error">{error}</p>}
+          {success && <p className="success">{success}</p>}
         </div>
+      )}
+      {mode === 'resetPassword' && (
+        <div className="auth-card">
+          <h1>Reset Password</h1>
+          <input
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="Email"
+            aria-label="Email input for reset"
+          />
+          <Button onClick={handleResetPassword} disabled={!email} aria-label="Send reset link button">
+            Send Reset Link
+          </Button>
+          <p
+            style={{ cursor: 'pointer', textDecoration: 'underline', marginTop: '1rem' }}
+            onClick={() => setMode('login')}
+            aria-label="Back to login link"
+          >
+            Back to Login
+          </p>
+          {error && <p className="error">{error}</p>}
+          {success && <p className="success">{success}</p>}
+        </div>
+      )}
+      {mode === 'completeReset' && (
+        <div className="auth-card" >
+          <h1>Complete Reset</h1>
+          <input
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            placeholder="New Password"
+            aria-label="New Passowrd input for reset"
+          />
+          <input
+            type="password"
+            value={confirmPassword}
+            onChange={(e) => setconfirmPassowrd(e.target.value)}
+            placeholder="Confirm Password"
+            aria-label="Confirm password input for reset"
+          />
+          <Button onClick={handleCompleteReset} disabled={!password || !confirmPassword} aria-label="Reset password button">
+            Reset Password
+          </Button>
+          {error && <p className="error">{error}</p>}
+          {success && <p className="Success">{success}</p>}
+        </div>
+      )}
+      {mode === 'changePassword' && (
+        <div className="auth-card">
+          <h1>Change password</h1>
+          <input
+            type="password"
+            value={oldPassword}
+            onChange={(e) => setOldPassword(e.target.value)}
+            placeholder="Old Password"
+            aria-label="Old passowrd input"
+          />
+          <input
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            placeholder="New Password"
+            aria-label="New password input"
+          />
+          <input
+            type="password"
+            value={confirmPassword}
+            onChange={(e) => setconfirmPassowrd(e.target.value)}
+            placeholder="Confirm new password button"
+          />
+          <Button onClick={handleChangePassword}
+            disabled={!oldPassword || !password || !confirmPassword}
+            aria-label="Change password button"
+          >
+            Change Password
+          </Button>
+          <p
+            style={{ cursor: 'pointer', textDecoration: 'underline', marginTop: '1rem' }}
+            onClick={() => setMode('training')}
+            aria-label="Back to training link"
+          >
+            Proceed to Training
+          </p>
+          {error && <p className="error">{error} </p>}
+          {success && <p className="success">{success}</p>}
+        </div>
+      )}
+      {mode === 'training' && (
+        <>
+          <h1>Britam Agent Training</h1>
+          <p>Listen to the audio until it ends, then click Next</p>
+          {currentStep === 0 && (
+            <Button onClick={handleStart} aria-label="Start training">
+              Start
+            </Button>
+          )
+          }
+          {currentStep > 0 && currentStep < 5 && currentAudio && (
+            <div>
+              <p>Audio {currentStep} of 4</p>
+              <AudioPlayer
+                src={currentAudio}
+                onEnded={handleEnded}
+                onRestart={handleRestart}
+                isPlaying={isPlaying}
+                onPlayPause={handlePlayPause}
+                aria-label={`Audio ${currentStep} player`}
+              />
+              <button
+                onClick={handleNext}
+                disabled={!audioCompleted[currentStep]}
+                aria-label={`Next audio, disabled until audio ${currentStep} completes`}
+              >
+                Next
+              </button>
+            </div>
+          )}
+          {currentStep === 5 && (
+            <div>
+              <p> All audios complete!</p>
+              <Button onClick={handleReturn} aria-label="Return to main page">
+                Return
+              </Button>
+            </div>
+          )}
+        </>
       )}
     </MainContainer>
 
