@@ -194,7 +194,7 @@ function App() {
     <MainContainer>
       {mode === 'login' && (
         <div className="auth-card">
-          <h1>Britam Agent Login</h1>
+          <h1>Sign in</h1>
           <input
             type="email"
             value={email}

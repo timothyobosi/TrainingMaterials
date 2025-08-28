@@ -28,11 +28,15 @@ export async function resetPassword(email){
     return res.json();
 }
 
-export async function completeResetPassword(token,password){
+export async function completeResetPassword(token,password,email){
     const res = await fetch(`${BASE_URL}/complete-reset-password`,{
         method:'POST',
         headers:{'Content-Type':'application/json'},
-        body:JSON.stringify({token,password}),
+        body:JSON.stringify({
+            token,
+            newPassword:password,
+            email
+        }),
     });
     return res.json();
 }
