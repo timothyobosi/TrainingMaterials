@@ -20,12 +20,12 @@ export async function setPassword(email,password){
 }
 
 export async function resetPassword(email){
-    const res = await fetch(`${BASE_URL}/complete-reset-password`,{
+    const res = await fetch(`${BASE_URL}/reset-password`,{
         method: 'POST',
         headers:{'Content-Type':'application/json'},
-        body: JSON.stringify(email)
+        body: JSON.stringify({email}),
     });
-    res.json();
+    return res.json();
 }
 
 export async function completeResetPassword(token,password){
@@ -34,7 +34,7 @@ export async function completeResetPassword(token,password){
         headers:{'Content-Type':'application/json'},
         body:JSON.stringify({token,password}),
     });
-    res.json();
+    return res.json();
 }
 
 export async function changePassword(oldPassword, newPassword, token){
