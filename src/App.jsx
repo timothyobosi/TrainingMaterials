@@ -4,7 +4,7 @@ import MainContainer from './components/MainContainer'
 import Button from './components/Button'
 import AudioPlayer from './components/AudioPlayer'
 import { mockAudioData } from './utils/mockData'
-import {login,setPassword,completeResetPassword,changePassword} from './api/auth'
+import { login, setPassword, completeResetPassword, changePassword, resetPassword } from './api/auth'
 
 const baseURL = '/api/Agents'
 
@@ -73,16 +73,16 @@ function App() {
     if (!email || !password) return setError('Please enter email and password')
     try {
       const data = await login(email, password);
-      if (data.status === 'success') {
+      if (data.status === 'Success') {
         setToken(data.token);
         setMode('training');
-      } else if(data.status === 'PasswordNotSet'){
+      } else if (data.status === 'PasswordNotSet') {
         setMode('setPassord');
-      }else {
+      } else {
         setError(data.message || 'Login failed');
       }
     } catch (e) {
-      setError('Network error'+e.message)
+      setError('Network error' + e.message)
     }
   }
 
@@ -93,19 +93,13 @@ function App() {
     if (!password || !confirmPassword) return setError('Please enter password and confirmation')
     if (password !== confirmPassword) return setError('Passwords do not match')
     try {
-      const res = await fetch(`${baseURL}/set-password`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password })
-      })
-      const data = await res.json()
-      if (res.ok && data.status === 'Success') {
-        setToken(data.token)
+      const data = await setPassword(email, password);
+      if (data.status === 'Success') {
+        setToken(data.token);
         setMode('training')
       } else {
         setError(data.message || 'Failed to set password')
       }
-
     } catch (e) {
       setError('Network error' + e.message)
     }
@@ -116,13 +110,8 @@ function App() {
     clearMessages()
     if (!email) return setError('Please enter email')
     try {
-      const res = await fetch(`${baseURL}/reset-password`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email }),
-      })
-      const data = await res.json()
-      if (res.ok) {
+      const data = await resetPassword(email)
+      if (data.status === 'Success' || data.ok) {
         setSuccess('Reset link sent to your email')
         setTimeout(() => setMode('login'), 3000)
       } else {
@@ -136,38 +125,29 @@ function App() {
   const handleCompleteReset = async () => {
     clearMessages()
     try {
-      const res = await fetch(`${baseURL}/complete-reset-password`, {
-        method: 'POST',
-        headers: { 'content-Type': 'application/json' },
-        body: JSON.stringify({ token: resetToken, password }),
-      })
-      const data = await res.json()
-      if (res.ok) {
-        setSuccess('password reset successfully. Please login')
-        setTimeout(() => setMode('login'), 3000)
+      if (!password || !confirmPassword) return setError('Please enter password and confirmation');
+      if (password !== confirmPassword) return setError('Passwords do not match');
+
+      const data = await completeResetPassword(resetToken, password);
+      if (data.status === 'Success') {
+        setSuccess('Password reset successfully. Please login');
+        setTimeout(() => setMode('login'), 3000);
       } else {
-        setError(data.message || 'Failed to reser password')
+        setError(data.message || 'Failed to reset password')
       }
     } catch (e) {
-      setError('Network error' + e.message)
+      setError('Network error:' + e.message)
     }
-  }
+  };
 
   const handleChangePassword = async () => {
     clearMessages()
     if (!oldPassword || password || !confirmPassword) return setError('Please fill all fields')
     if (password !== confirmPassword) return setError('New passwords do not match')
     try {
-      const res = await fetch(`${baseURL}/change-password`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({ oldPassword, newPassword: password })
-      })
-      const data = await res.json()
-      if (res.ok) {
+
+      const data = await changePassword(oldPassword, password, token)
+      if (data.status === 'Success') {
         setSuccess('Password changed successfully')
         setOldPassword('')
         setPassword('')

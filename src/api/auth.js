@@ -19,7 +19,7 @@ export async function setPassword(email,password){
     return res.json();
 }
 
-export async function restPassword(email){
+export async function resetPassword(email){
     const res = await fetch(`${BASE_URL}/complete-reset-password`,{
         method: 'POST',
         headers:{'Content-Type':'application/json'},
