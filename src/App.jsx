@@ -6,7 +6,7 @@ import AudioPlayer from './components/AudioPlayer'
 import { mockAudioData } from './utils/mockData'
 import { login, setPassword, completeResetPassword, changePassword, resetPassword } from './api/auth'
 
-const baseURL = '/api/Agents'
+
 
 function App() {
   const [mode, setMode] = useState('login')
