@@ -4,6 +4,7 @@ import MainContainer from './components/MainContainer'
 import Button from './components/Button'
 import AudioPlayer from './components/AudioPlayer'
 import { mockAudioData } from './utils/mockData'
+import {login,setPassword,completeResetPassword,changePassword} from './api/auth'
 
 const baseURL = '/api/Agents'
 
@@ -71,27 +72,20 @@ function App() {
     clearMessages()
     if (!email || !password) return setError('Please enter email and password')
     try {
-      const res = await fetch(`${baseURL}/login`, {
-  method: 'POST',
-  headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify({ email, password }),
-});
-
-      const data = await res.json()
-      if (res.ok && data.status === 'Success') {
-        setToken(data.token)
-        setMode('training')
-      } else if (data.status === 'PasswordNotSet') {
-        setMode('setPassword')
-      } else {
-        setError(data.message || 'Login failed')
+      const data = await login(email, password);
+      if (data.status === 'success') {
+        setToken(data.token);
+        setMode('training');
+      } else if(data.status === 'PasswordNotSet'){
+        setMode('setPassord');
+      }else {
+        setError(data.message || 'Login failed');
       }
     } catch (e) {
-      setError('Network error' + e.message)
-
+      setError('Network error'+e.message)
     }
-
   }
+
 
 
   const handleSetPassword = async () => {
