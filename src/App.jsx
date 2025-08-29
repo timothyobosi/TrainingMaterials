@@ -1,165 +1,157 @@
-import { useEffect, useState } from 'react'
-import './App.css'
-import MainContainer from './components/MainContainer'
-import Button from './components/Button'
-import AudioPlayer from './components/AudioPlayer'
-import { mockAudioData } from './utils/mockData'
-import { login, setPassword, completeResetPassword, changePassword, resetPassword } from './api/auth'
-
-
+import { useEffect, useState } from 'react';
+import './App.css';
+import MainContainer from './components/MainContainer';
+import Button from './components/Button';
+import AudioPlayer from './components/AudioPlayer';
+import { mockAudioData } from './utils/mockData';
+import { login, setPassword, completeResetPassword, changePassword, resetPassword } from './api/auth';
 
 function App() {
-  const [mode, setMode] = useState('login')
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [confirmPassword, setconfirmPassowrd] = useState('')
-  const [oldPassword, setOldPassword] = useState('')
-  const [error, setError] = useState('')
-  const [success, setSuccess] = useState('')
-  const [token, setToken] = useState('')
-  const [resetToken, setResetToken] = useState('')
+  const [mode, setMode] = useState('login');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [oldPassword, setOldPassword] = useState('');
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
+  const [token, setToken] = useState('');
+  const [resetToken, setResetToken] = useState('');
 
-  //training states
-  const [currentStep, setCurrentStep] = useState(0) //0=start , 1-4 = Audio steps, 5 =done
-  const [audioData, setAudioData] = useState({ mockAudioData })
+  // Training states
+  const [currentStep, setCurrentStep] = useState(0); // 0=start, 1-4 = Audio steps, 5 = done
+  const [audioData, setAudioData] = useState(mockAudioData); // Fixed object syntax
   const [isPlaying, setIsPlaying] = useState(false);
   const [audioCompleted, setAudioCompleted] = useState({
     1: false,
     2: false,
     3: false,
-    4: false
-  })
+    4: false,
+  });
 
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search)
-    const tk = params.get('token')
+    const params = new URLSearchParams(window.location.search);
+    const tk = params.get('token');
     if (tk) {
-      setResetToken(tk)
-      setMode('completedRest')
+      setResetToken(tk);
+      setMode('completeReset');
     }
-  }, [])
+    console.log('Initial mode from URL:', mode); // Debug initial mode
+  }, []);
 
-
-  //load data on mount
+  // Load data on mount
   useEffect(() => {
-    //load progress from sessionStorage on mount
+    console.log('Mode changed to:', mode); // Debug mode changes
     if (mode === 'training') {
       const savedProgress = JSON.parse(sessionStorage.getItem('britamTrainingProgress')) || {};
       const savedAudioData = JSON.parse(sessionStorage.getItem('britamTrainingAudioData')) || {};
-
-      //Use saved progress or default
       if (savedProgress.currentStep) setCurrentStep(savedProgress.currentStep);
-      if (savedProgress.audioCompleted) setAudioCompleted(savedProgress.audioCompleted)
+      if (savedProgress.audioCompleted) setAudioCompleted(savedProgress.audioCompleted);
       setAudioData(savedAudioData);
     }
-  }, [mode])
+  }, [mode]);
 
-  //save progress whenever things change
+  // Save progress whenever things change
   useEffect(() => {
     if (mode === 'training') {
-      sessionStorage.setItem('britamTrainingProgress', JSON.stringify({ currentStep, audioCompleted }))
-      sessionStorage.setItem('britamTrainingAudioData', JSON.stringify(audioData))
+      sessionStorage.setItem('britamTrainingProgress', JSON.stringify({ currentStep, audioCompleted }));
+      sessionStorage.setItem('britamTrainingAudioData', JSON.stringify(audioData));
     }
-  }, [currentStep, audioCompleted, audioData, mode])
+  }, [currentStep, audioCompleted, audioData, mode]);
 
   const clearMessages = () => {
-    setError('')
-    setSuccess('')
-  }
-
+    setError('');
+    setSuccess('');
+  };
 
   const handleLogin = async () => {
-    clearMessages()
-    if (!email || !password) return setError('Please enter email and password')
+    clearMessages();
+    if (!email || !password) return setError('Please enter email and password');
     try {
       const data = await login(email, password);
       if (data.status === 'Success') {
         setToken(data.token);
         setMode('training');
       } else if (data.status === 'PasswordNotSet') {
-        setMode('setPassord');
+        setMode('setPassword');
       } else {
         setError(data.message || 'Login failed');
       }
     } catch (e) {
-      setError('Network error' + e.message)
+      setError('Network error' + e.message);
     }
-  }
-
-
+  };
 
   const handleSetPassword = async () => {
-    clearMessages()
-    if (!password || !confirmPassword) return setError('Please enter password and confirmation')
-    if (password !== confirmPassword) return setError('Passwords do not match')
+    clearMessages();
+    if (!password || !confirmPassword) return setError('Please enter password and confirmation');
+    if (password !== confirmPassword) return setError('Passwords do not match');
     try {
       const data = await setPassword(email, password);
       if (data.status === 'Success') {
         setToken(data.token);
-        setMode('training')
+        setMode('training');
       } else {
-        setError(data.message || 'Failed to set password')
+        setError(data.message || 'Failed to set password');
       }
     } catch (e) {
-      setError('Network error' + e.message)
+      setError('Network error' + e.message);
     }
-  }
-
+  };
 
   const handleResetPassword = async () => {
-    clearMessages()
-    if (!email) return setError('Please enter email')
+    clearMessages();
+    if (!email) return setError('Please enter email');
     try {
-      const data = await resetPassword(email)
-      if (data.status === 'Success' || data.ok) {
-        setSuccess('Reset link sent to your email')
-        setTimeout(() => setMode('login'), 3000)
+      const data = await resetPassword(email);
+      console.log('Reset Password API response:', data); // Debug API response
+      if (data.status === 'Success' || data.ok || data.message === 'Password reset token generated successfully. Please check your email.') {
+        setSuccess('Reset link sent to your email');
+        setMode('passwordReset');
       } else {
-        setError(data.message || 'Failed to send reset link')
+        setError(data.message || 'Failed to send reset link');
       }
     } catch (e) {
-      setError('Network error' + e.message)
+      setError('Network error' + e.message);
     }
-  }
+  };
 
   const handleCompleteReset = async () => {
-    clearMessages()
+    clearMessages();
     try {
       if (!password || !confirmPassword) return setError('Please enter password and confirmation');
       if (password !== confirmPassword) return setError('Passwords do not match');
 
-      const data = await completeResetPassword(resetToken, password);
+      const data = await completeResetPassword(resetToken, password, email);
       if (data.status === 'Success') {
         setSuccess('Password reset successfully. Please login');
         setTimeout(() => setMode('login'), 3000);
       } else {
-        setError(data.message || 'Failed to reset password')
+        setError(data.message || 'Failed to reset password');
       }
     } catch (e) {
-      setError('Network error:' + e.message)
+      setError('Network error:' + e.message);
     }
   };
 
   const handleChangePassword = async () => {
-    clearMessages()
-    if (!oldPassword || password || !confirmPassword) return setError('Please fill all fields')
-    if (password !== confirmPassword) return setError('New passwords do not match')
+    clearMessages();
+    if (!oldPassword || !password || !confirmPassword) return setError('Please fill all fields');
+    if (password !== confirmPassword) return setError('New passwords do not match');
     try {
-
-      const data = await changePassword(oldPassword, password, token)
+      const data = await changePassword(oldPassword, password, token);
       if (data.status === 'Success') {
-        setSuccess('Password changed successfully')
-        setOldPassword('')
-        setPassword('')
-        setconfirmPassowrd('')
-        setTimeout(() => setMode('training'), 2000)
+        setSuccess('Password changed successfully');
+        setOldPassword('');
+        setPassword('');
+        setConfirmPassword('');
+        setTimeout(() => setMode('training'), 2000);
       } else {
-        setError(data.message || 'Failed to change password')
+        setError(data.message || 'Failed to change password');
       }
     } catch (e) {
-      setError('Network error' + e.message)
+      setError('Network error' + e.message);
     }
-  }
+  };
 
   const handleStart = () => {
     setIsPlaying(true);
@@ -168,25 +160,23 @@ function App() {
 
   const handleNext = () => {
     if (currentStep < 4) setCurrentStep((prev) => prev + 1);
-    else setCurrentStep(5)
-  }
+    else setCurrentStep(5);
+  };
   const handleReturn = () => {
     sessionStorage.removeItem('britamTrainingProgress');
     sessionStorage.removeItem('britamTrainingAudioData');
-    window.location.href = audioData.returnUrl || 'http://example.com'; //Use parsed returnUrl or fallback   //Temporary Placeholder
-  }
+    window.location.href = audioData.returnUrl || 'http://example.com';
+  };
 
   const handlePlayPause = (play) => setIsPlaying(play);
-
   const handleRestart = () => {
     setAudioCompleted((prev) => ({ ...prev, [currentStep]: false }));
     setIsPlaying(true);
-  }
-
+  };
   const handleEnded = () => {
-    setAudioCompleted(prev => ({ ...prev, [currentStep]: true }))
-    setIsPlaying(false)
-  }
+    setAudioCompleted((prev) => ({ ...prev, [currentStep]: true }));
+    setIsPlaying(false);
+  };
 
   const currentAudio = audioData[`audio${currentStep}`];
 
@@ -225,14 +215,21 @@ function App() {
       )}
       {mode === 'setPassword' && (
         <div className="auth-card">
-          <h1> Set Password</h1>
-          <p>For email:{email}</p>
+          <h1>Set Password</h1>
+          <p>For email: {email}</p>
+          <input
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            placeholder="New password"
+            aria-label="New password input"
+          />
           <input
             type="password"
             value={confirmPassword}
-            onChange={(e) => setconfirmPassowrd(e.target.value)}
-            placeholder="New password"
-            aria-label="New password input"
+            onChange={(e) => setConfirmPassword(e.target.value)}
+            placeholder="Confirm password"
+            aria-label="Confirm password input"
           />
           <Button onClick={handleSetPassword} disabled={!password || !confirmPassword} aria-label="Set password button">
             Set Password
@@ -265,39 +262,15 @@ function App() {
           {success && <p className="success">{success}</p>}
         </div>
       )}
-      {mode === 'completeReset' && (
-        <div className="auth-card" >
-          <h1>Complete Reset</h1>
-          <input
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            placeholder="New Password"
-            aria-label="New Passowrd input for reset"
-          />
-          <input
-            type="password"
-            value={confirmPassword}
-            onChange={(e) => setconfirmPassowrd(e.target.value)}
-            placeholder="Confirm Password"
-            aria-label="Confirm password input for reset"
-          />
-          <Button onClick={handleCompleteReset} disabled={!password || !confirmPassword} aria-label="Reset password button">
-            Reset Password
-          </Button>
-          {error && <p className="error">{error}</p>}
-          {success && <p className="Success">{success}</p>}
-        </div>
-      )}
-      {mode === 'changePassword' && (
+      {mode === 'passwordReset' && (
         <div className="auth-card">
-          <h1>Change password</h1>
+          <h1>Password Reset</h1>
           <input
-            type="password"
-            value={oldPassword}
-            onChange={(e) => setOldPassword(e.target.value)}
-            placeholder="Old Password"
-            aria-label="Old passowrd input"
+            type="text"
+            value={resetToken}
+            onChange={(e) => setResetToken(e.target.value)}
+            placeholder="Token"
+            aria-label="Token input"
           />
           <input
             type="password"
@@ -309,10 +282,85 @@ function App() {
           <input
             type="password"
             value={confirmPassword}
-            onChange={(e) => setconfirmPassowrd(e.target.value)}
-            placeholder="Confirm new password button"
+            onChange={(e) => setConfirmPassword(e.target.value)}
+            placeholder="Confirm Password"
+            aria-label="Confirm password input"
           />
-          <Button onClick={handleChangePassword}
+          <input
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="Email"
+            aria-label="Email input"
+          />
+          <Button
+            onClick={handleCompleteReset}
+            disabled={!resetToken || !password || !confirmPassword || !email}
+            aria-label="Complete reset button"
+          >
+            Complete Reset
+          </Button>
+          <p
+            style={{ cursor: 'pointer', textDecoration: 'underline', marginTop: '1rem' }}
+            onClick={() => setMode('login')}
+            aria-label="Back to login link"
+          >
+            Back to Login
+          </p>
+          {error && <p className="error">{error}</p>}
+          {success && <p className="success">{success}</p>}
+        </div>
+      )}
+      {mode === 'completeReset' && (
+        <div className="auth-card">
+          <h1>Complete Reset</h1>
+          <input
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            placeholder="New Password"
+            aria-label="New Password input for reset"
+          />
+          <input
+            type="password"
+            value={confirmPassword}
+            onChange={(e) => setConfirmPassword(e.target.value)}
+            placeholder="Confirm Password"
+            aria-label="Confirm password input for reset"
+          />
+          <Button onClick={handleCompleteReset} disabled={!password || !confirmPassword} aria-label="Reset password button">
+            Reset Password
+          </Button>
+          {error && <p className="error">{error}</p>}
+          {success && <p className="success">{success}</p>}
+        </div>
+      )}
+      {mode === 'changePassword' && (
+        <div className="auth-card">
+          <h1>Change password</h1>
+          <input
+            type="password"
+            value={oldPassword}
+            onChange={(e) => setOldPassword(e.target.value)}
+            placeholder="Old Password"
+            aria-label="Old password input"
+          />
+          <input
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            placeholder="New Password"
+            aria-label="New password input"
+          />
+          <input
+            type="password"
+            value={confirmPassword}
+            onChange={(e) => setConfirmPassword(e.target.value)}
+            placeholder="Confirm new password"
+            aria-label="Confirm new password input"
+          />
+          <Button
+            onClick={handleChangePassword}
             disabled={!oldPassword || !password || !confirmPassword}
             aria-label="Change password button"
           >
@@ -325,7 +373,7 @@ function App() {
           >
             Proceed to Training
           </p>
-          {error && <p className="error">{error} </p>}
+          {error && <p className="error">{error}</p>}
           {success && <p className="success">{success}</p>}
         </div>
       )}
@@ -337,8 +385,7 @@ function App() {
             <Button onClick={handleStart} aria-label="Start training">
               Start
             </Button>
-          )
-          }
+          )}
           {currentStep > 0 && currentStep < 5 && currentAudio && (
             <div>
               <p>Audio {currentStep} of 4</p>
@@ -361,7 +408,7 @@ function App() {
           )}
           {currentStep === 5 && (
             <div>
-              <p> All audios complete!</p>
+              <p>All audios complete!</p>
               <Button onClick={handleReturn} aria-label="Return to main page">
                 Return
               </Button>
@@ -370,8 +417,7 @@ function App() {
         </>
       )}
     </MainContainer>
-
-  )
+  );
 }
 
-export default App
+export default App;
