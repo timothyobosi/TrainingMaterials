@@ -110,6 +110,11 @@ h1{
   width: 100%;
 }
 
+.input:focus {
+  box-shadow: 5.5px 7px 0 black;
+}
+
+
 .input-wrapper input{
   width: 100%;
   padding: 0.9rem 2.5rem 0.9rem 2.5rem;
