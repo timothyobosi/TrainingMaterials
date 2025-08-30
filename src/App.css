@@ -35,6 +35,10 @@
   animation: waveGlitter 7s ease-in-out infinite;
 }
 
+h1{
+  font-size: 24px;
+}
+
 @keyframes waveGlitter{
   0% {transform: translateX(-100%);}
   50% {transform: translateX(100%);}
@@ -172,18 +176,20 @@
 button{
   padding: 0.5rem 1rem;
   margin: 0.5rem;
-  font-size: 1rem;
+  font-size: 0.95rem;
   cursor: pointer;
-  background:linear-gradient(90deg, #4CAF50,#6696bb);
+  background:linear-gradient(90deg, #14c5c5,#208ee1);
   color: white;
   border: none;
-  border-radius: 8px;
+  border-radius: 45px;
   transition: transform 0.2s, background 0.3s;
 }
 
 button:hover:not(:disabled){
   transform: scale(1.05);
-  background: linear-gradient(90deg,#45a049,#66BB6A);
+  background: linear-gradient(90deg,#17c2c2,#331bbe);
+  transform: translateY(-7px);
+  box-shadow: 0px 15px 20px rgba(46, 229, 157, 0.4);
 }
 
 button:disabled{
