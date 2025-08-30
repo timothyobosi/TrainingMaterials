@@ -10,14 +10,14 @@ const Button = ({children, onClick, disabled}) => {
             margin: '0.5rem',
             fontsize: '1rem',
             cursor: disabled ? 'not-allowed':'pointer',
-            background: disabled ? '#cccccc' : 'linear-gradient(90deg, #4CAF50,#66BB6A)',
+            background: disabled ? '#cccccc' : 'linear-gradient(90deg, #1914a1ff,#66BB6A)',
             color: 'white',
             border:'none',
             borderRadius:'8px,',
             transition:'transform 0.2s, background 0.3s',
         }}   
         onMouseOver={!disabled ? (e) => (e.target.style.background='linear-gradient(90deg, #45a049,#66BB6A)'):undefined}
-        onMouseOut={!disabled ? (e) => (e.target.style.background='linear-gradient(90deg, #45a049,#66BB6A)'):undefined}
+        onMouseOut={!disabled ? (e) => (e.target.style.background='linear-gradient(90deg, #1914a1ff,#66BB6A)'):undefined}
         onFocus={!disabled ? (e) => (e.target.style.background='linear-gradient(90deg, #45a049,#66BB6A)'):undefined}
         onBlur={!disabled ? (e) => (e.target.style.background='linear-gradient(90deg, #45a049,#66BB6A)'):undefined} 
     >
