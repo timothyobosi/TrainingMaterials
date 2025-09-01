@@ -98,6 +98,24 @@ function App() {
     }
   };
 
+  const handleSignup = async () =>{
+    clearMessages();
+    if (!email || !password || !confirmPassword) return setError('Please fill all fields');
+    if (password !== confirmPassword) return setError('Passwords do not match');
+    try{
+      const data = await setPassword(email,password);
+      if (data.status=== 'Success') {
+        setSuccess('Account created successfully. Please login.');
+        setTimeout(()=> setMode('login'),3000);
+      }else{
+        setError(data.message || 'Failed to sign up');
+      }
+      
+    } catch(e){
+      setError('Network error:'+e.message);
+    }
+  }
+
   const handleResetPassword = async () => {
     clearMessages();
     if (!email) return setError('Please enter email');
@@ -199,6 +217,18 @@ function App() {
             placeholder="Password"
             aria-label="Password input"
           />
+          <div style={{textAlign:'right',marginBottom:'1rem'}}>
+            <p 
+            style={{cursor:'pointer',textDecoration:'underline', margin:'0', display:'inline-block',color:'rgba(255,255,255,0.5)',fontSize:'0.9rem'}}
+            onClick={()=> setMode('signup')}
+            aria-label="Sign up link"
+            >
+              Sign up
+            </p>
+
+          </div>
+
+
           <Button onClick={handleLogin} disabled={!email || !password} aria-label="Login button">
             Login
           </Button>
@@ -209,8 +239,46 @@ function App() {
           >
             Forgot Password
           </p>
+
+
           {error && <p className="error">{error}</p>}
           {success && <p className="success">{success}</p>}
+        </div>
+      )}
+      {mode === 'signup' && (
+        <div className="auth-card">
+          <h1>Sign up</h1>
+          <input 
+          type="email" 
+          value={email}
+          onChange={(e) =>setEmail(e.target.value)}
+          placeholder="Email"
+          aria-label="Email input for signup"
+          />
+          <input type="password" 
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          placeholder="Password"
+          aria-label="Password input for signup"
+          />
+          <input type="password" 
+          value={confirmPassword}
+          onChange={(e) => setConfirmPassword(e.target.value)}
+          placeholder="Confirm Password"
+          aria-label="Confirm password inpu for signup"
+          />
+          <Button onClick={handleSignup} disabled={!email || !password ||!confirmPassword} aria-label ="Sign up button">
+            Sign up
+          </Button>
+          <p 
+            style={{cursor:'pointer', textDecoration:'underline', marginTop:'1rem'}}
+            onClick={() =>setMode('login')}
+            aria-label="Back to login link"
+          >
+            Back to login
+          </p>
+          {error && <p className="error">{error} </p> }
+          {success && <p className="success">{success} </p> }
         </div>
       )}
       {mode === 'setPassword' && (

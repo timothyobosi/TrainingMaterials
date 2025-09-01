@@ -1,5 +1,5 @@
 
-const BASE_URL = '/api/Agents';
+const BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api/Agents';
 
 export async function login(email,password){
     const res = await fetch(`${BASE_URL}/login`,{
@@ -50,5 +50,5 @@ export async function changePassword(oldPassword, newPassword, token){
         },
         body: JSON.stringify({oldPassword, newPassword}),
     });
-    res.json();
+    return res.json();
 }

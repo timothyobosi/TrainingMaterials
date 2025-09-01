@@ -1,12 +1,14 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
+import { config } from 'dotenv'
 
-// https://vite.dev/config/
+config()
+
 export default defineConfig({
   server:{
     proxy:{
       '/api':{
-        target:'https://brm-partners.britam.com',
+        target:process.env.VITE_API_TARGET,
         changeOrigin:true,
         secure:false,
       },
