@@ -64,6 +64,19 @@ h1{
   box-sizing: border-box;
 }
 
+.auth-card button {
+  margin-top: 0.25rem; /* Reduced from 0.5rem to 0.25rem */
+  padding: 0.5rem 1rem;
+  margin: -0.9rem;
+  font-size: 0.95rem;
+  cursor: pointer;
+  background: linear-gradient(90deg, #14c5c5, #208ee1);
+  color: white;
+  border: none;
+  border-radius: 45px;
+  transition: transform 0.2s, background 0.3s;
+}
+
 .auth-card input:focus{
   border: 1px solid #fff;
 }
