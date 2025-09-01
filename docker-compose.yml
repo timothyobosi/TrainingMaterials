@@ -1,0 +1,6 @@
+services:
+  traning_materials_frontend:
+    build:
+      context: .
+    ports:
+      - "3000:3000"
