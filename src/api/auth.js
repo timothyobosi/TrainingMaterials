@@ -1,5 +1,7 @@
 
 const BASE_URL = import.meta.env.VITE_API_TARGET + import.meta.env.VITE_API_BASE_URL ;
+
+const TRAINING_BASEURL = import.meta.env.VITE_API_TARGET + import.meta.env.VITE_TRAINING_BASE_URL;
 //const BASE_URL = process.env.VITE_API_BASE_URL;
 
 export async function login(email,password){
@@ -57,7 +59,7 @@ export async function changePassword(oldPassword, newPassword, token){
 
 //training API functions
 export async function getNextTraining(token){
-    const res = await fetch(`${BASE_URL}/api/Training/next`,{
+    const res = await fetch(`${TRAINING_BASEURL}/Training/next`,{
         method:'GET',
         headers:{
             'Content-Type' : 'application/json',
@@ -69,7 +71,7 @@ export async function getNextTraining(token){
 }
 
 export async function getTrainingById(token, id){
-    const res = await fetch(`${BASE_URL}/api/Training/${id}`, {
+    const res = await fetch(`${TRAINING_BASEURL}/Training/${id}`, {
         method: 'GET',
         headers: {
             'Content-Type' : 'application/json',
@@ -81,7 +83,7 @@ export async function getTrainingById(token, id){
 }
 
 export async function updateTrainingProgress(token,moduleId, watchSeconds){
-    const res = await fetch(`${BASE_URL}/api/Training/progress`,{
+    const res = await fetch(`${TRAINING_BASEURL}/Training/progress`,{
         method: 'POST',
         headers: {
             'Content-Type' : 'application/json',
@@ -94,7 +96,7 @@ export async function updateTrainingProgress(token,moduleId, watchSeconds){
 }
 
 export async function getTrainingStatus(token){
-    const res = await fetch(`${BASE_URL}/api/Training/status`,{
+    const res = await fetch(`${TRAINING_BASEURL}/Training/status`,{
         method: 'GET',
         headers: {
             'Content-Type' : 'application/json',
@@ -106,7 +108,7 @@ export async function getTrainingStatus(token){
 }
 
 export async function getCompletionReport(token){
-    const res = await fetch(`${BASE_URL}/api/Training/completion-report`,{
+    const res = await fetch(`${TRAINING_BASEURL}/Training/completion-report`,{
         method: 'GET',
         headers:{
             'Content-Type' : 'application/json',

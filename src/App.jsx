@@ -3,8 +3,7 @@ import './App.css';
 import MainContainer from './components/MainContainer';
 import Button from './components/Button';
 import AudioPlayer from './components/AudioPlayer';
-import { mockAudioData } from './utils/mockData';
-import { login, setPassword, completeResetPassword, changePassword, resetPassword } from './api/auth';
+import { login, setPassword, completeResetPassword, changePassword, resetPassword, getNextTraining, updateTrainingProgress } from './api/auth';
 
 function App() {
   const [mode, setMode] = useState('login');
@@ -21,13 +20,20 @@ function App() {
 
   // Training states
   const [currentStep, setCurrentStep] = useState(0); // 0=start, 1-4 = Audio steps, 5 = done
-  const [audioData, setAudioData] = useState(mockAudioData); // Fixed object syntax
+  const [audioData, setAudioData] = useState({audio1:null, audio2:null,audio3:null,audio4:null}); // Fixed object syntax
   const [isPlaying, setIsPlaying] = useState(false);
   const [audioCompleted, setAudioCompleted] = useState({
     1: false,
     2: false,
     3: false,
     4: false,
+  });
+  //Store module IDs
+  const [moduleIds, setModuleIds] = useState({
+    1:null,
+    2:null,
+    3:null,
+    4:null
   });
 
   useEffect(() => {
@@ -57,15 +63,23 @@ function App() {
     setGreeting(newGreeting);
   }, []);
 
+  useEffect(()=>{
+    console.log('Mode changed to:', mode);
+    if (mode === 'training' && token){
+      fetchTrainingData();
+    }
+  },[mode,token]);
+
   // Load data on mount
   useEffect(() => {
-    console.log('Mode changed to:', mode); // Debug mode changes
     if (mode === 'training') {
       const savedProgress = JSON.parse(sessionStorage.getItem('britamTrainingProgress')) || {};
       const savedAudioData = JSON.parse(sessionStorage.getItem('britamTrainingAudioData')) || {};
+      const savedModuleIds = JSON.parse(sessionStorage.getItem('britamModuleIds')) || {};
       if (savedProgress.currentStep) setCurrentStep(savedProgress.currentStep);
       if (savedProgress.audioCompleted) setAudioCompleted(savedProgress.audioCompleted);
       setAudioData(savedAudioData);
+      setModuleIds(savedModuleIds);
     }
   }, [mode]);
 
@@ -74,8 +88,9 @@ function App() {
     if (mode === 'training') {
       sessionStorage.setItem('britamTrainingProgress', JSON.stringify({ currentStep, audioCompleted }));
       sessionStorage.setItem('britamTrainingAudioData', JSON.stringify(audioData));
+      sessionStorage.setItem('britamModuleIds', JSON.stringify(moduleIds))
     }
-  }, [currentStep, audioCompleted, audioData, mode]);
+  }, [currentStep, audioCompleted, audioData, moduleIds]);
 
   const clearMessages = () => {
     setError('');
@@ -207,6 +222,22 @@ function App() {
     setMode('login');
   }
 
+  const fetchTrainingData = async() =>{
+    try{
+      for (let step =1; step <=4; step++){
+        const data = await getNextTraining(token);
+        if (data.audioUrl && data.moduleId){
+          setAudioData(prev => ({...prev,[`audio${step}`]: data.audioUrl}));
+          setModuleIds(prev => ({...prev,[step]: data.moduleId}));
+        }else{
+          setError('Failed to fetch training audio')
+        }
+      }
+    }catch(e){
+      setError('Network error:' + e.message);
+    }
+  };
+
   const handleStart = () => {
     setIsPlaying(true);
     setCurrentStep(1);
@@ -225,9 +256,17 @@ function App() {
     setAudioCompleted((prev) => ({ ...prev, [currentStep]: false }));
     setIsPlaying(true);
   };
-  const handleEnded = () => {
+
+  const handleEnded =  async () => {
     setAudioCompleted((prev) => ({ ...prev, [currentStep]: true }));
     setIsPlaying(false);
+    if(moduleIds[currentStep]){
+      try{
+        await updateTrainingProgress(token, moduleIds[currentStep],0); //placeholder for duration
+      } catch(e){
+        setError('Failed to update progress:' +e.message);
+      }
+    }
   };
 
   const currentAudio = audioData[`audio${currentStep}`];
@@ -479,7 +518,7 @@ function App() {
           {success && <p className="success">{success}</p>}
         </div>
       )}
-      {mode == 'dashboard' && ( //dash mode with greeting cards
+      {mode === 'dashboard' && ( //dash mode with greeting cards
         <div className="dashboard-container">
           <h1 className="greeting">Good {greeting},{firstName}</h1>
           <div className="dash-grid">
