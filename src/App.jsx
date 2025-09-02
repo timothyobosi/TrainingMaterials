@@ -16,6 +16,8 @@ function App() {
   const [success, setSuccess] = useState('');
   const [token, setToken] = useState('');
   const [resetToken, setResetToken] = useState('');
+  const [firstName, setFirstName] = useState(''); //first name from log in response
+  const [greeting, setGreeting] = useState('')//State for time-based greeting
 
   // Training states
   const [currentStep, setCurrentStep] = useState(0); // 0=start, 1-4 = Audio steps, 5 = done
@@ -36,6 +38,23 @@ function App() {
       setMode('completeReset');
     }
     console.log('Initial mode from URL:', mode); // Debug initial mode
+
+    //load persisted data from local storage on mount for persistence across refresshes & sessions
+    const savedToken = localStorage.getItem('britamToken');
+    const savedFirstName = localStorage.getItem('britamFirstName');
+    const savedMode = localStorage.getItem('britamMode');
+    if(savedToken){
+      setToken(savedToken);
+      setFirstName(savedFirstName || '');
+      setMode(savedMode || 'dashboard'); //defau;t to dash if mode not saved
+    }
+
+    //set Time-based greeting
+    const hour = new Date().getHours();
+    let newGreeting = 'Morning';
+    if( hour>=12 && hour < 18) newGreeting ='Afternoon';
+    else if (hour >= 18) newGreeting = 'Evening';
+    setGreeting(newGreeting);
   }, []);
 
   // Load data on mount
@@ -70,7 +89,13 @@ function App() {
       const data = await login(email, password);
       if (data.status === 'Success') {
         setToken(data.token);
-        setMode('training');
+
+        //Extract first name and persist to localStorage
+        const fname = data.name.split(' ')[0];
+        setFirstName(fname);
+        localStorage.setItem('britamToken', data.token);
+        localStorage.setItem('britamFirstName', fname);
+        setMode('dashboard'); //set to dahsborad from training
       } else if (data.status === 'PasswordNotSet') {
         setMode('setPassword');
       } else {
@@ -89,7 +114,10 @@ function App() {
       const data = await setPassword(email, password);
       if (data.status === 'Success') {
         setToken(data.token);
-        setMode('training');
+
+        //Persist token
+        localStorage.setItem('britamToken', data.token);
+        setMode('dashboard'); //removed training
       } else {
         setError(data.message || 'Failed to set password');
       }
@@ -162,7 +190,7 @@ function App() {
         setOldPassword('');
         setPassword('');
         setConfirmPassword('');
-        setTimeout(() => setMode('training'), 2000);
+        setTimeout(() => setMode('dashboard'), 2000);
       } else {
         setError(data.message || 'Failed to change password');
       }
@@ -170,6 +198,14 @@ function App() {
       setError('Network error' + e.message);
     }
   };
+
+  //Logout handler
+  const handleLogout = () =>{
+    localStorage.clear();
+    setToken('');
+    setFirstName('');
+    setMode('login');
+  }
 
   const handleStart = () => {
     setIsPlaying(true);
@@ -181,9 +217,7 @@ function App() {
     else setCurrentStep(5);
   };
   const handleReturn = () => {
-    sessionStorage.removeItem('britamTrainingProgress');
-    sessionStorage.removeItem('britamTrainingAudioData');
-    window.location.href = audioData.returnUrl || 'http://example.com';
+    setMode('dashboard');
   };
 
   const handlePlayPause = (play) => setIsPlaying(play);
@@ -436,17 +470,31 @@ function App() {
           </Button>
           <p
             style={{ cursor: 'pointer', textDecoration: 'underline', marginTop: '1rem' }}
-            onClick={() => setMode('training')}
-            aria-label="Back to training link"
+            onClick={() => setMode('dashboard')}
+            aria-label="Back to Dashboard"
           >
-            Proceed to Training
+            Proceed to Dashboard
           </p>
           {error && <p className="error">{error}</p>}
           {success && <p className="success">{success}</p>}
         </div>
       )}
+      {mode == 'dashboard' && ( //dash mode with greeting cards
+        <div className="dashboard-container">
+          <h1 className="greeting">Good {greeting},{firstName}</h1>
+          <div className="dash-grid">
+            <div className="dashboard-card" onClick={()=>setMode('training')}>
+              <h2>Training Audios</h2>
+            </div>
+            <div className="dashboard-card" onClick={()=>setMode('changePassword')}>
+              <h2>Account Management</h2>
+            </div>
+          </div>
+          <p className="logout-link" onClick={handleLogout}>Logout</p>            
+        </div>
+      )}
       {mode === 'training' && (
-        <>
+        <div className="training-container">
           <h1>Britam Agent Training</h1>
           <p>Listen to the audio until it ends, then click Next</p>
           {currentStep === 0 && (
@@ -482,8 +530,11 @@ function App() {
               </Button>
             </div>
           )}
-        </>
+        </div>
       )}
+      <p className="back-link" onClick={()=>setMode('dashboard')}>
+        Back to dashboard
+      </p>
     </MainContainer>
   );
 }
