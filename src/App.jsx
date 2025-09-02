@@ -6,28 +6,31 @@ import AudioPlayer from './components/AudioPlayer';
 import { mockAudioData } from './utils/mockData';
 import { login, setPassword, completeResetPassword, changePassword, resetPassword } from './api/auth';
 
+// Main App component
 function App() {
-  const [mode, setMode] = useState('login');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
-  const [oldPassword, setOldPassword] = useState('');
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
-  const [token, setToken] = useState('');
-  const [resetToken, setResetToken] = useState('');
+  const [mode, setMode] = useState('login'); // State to manage different views (login, dashboard, training, etc.)
+  const [email, setEmail] = useState(''); // User email input
+  const [password, setPassword] = useState(''); // User password input
+  const [confirmPassword, setConfirmPassword] = useState(''); // Confirm password input
+  const [oldPassword, setOldPassword] = useState(''); // Old password for change password
+  const [error, setError] = useState(''); // Error message state
+  const [success, setSuccess] = useState(''); // Success message state
+  const [token, setToken] = useState(''); // Authentication token
+  const [resetToken, setResetToken] = useState(''); // Reset password token
+  const [userName, setUserName] = useState('Wafula'); // Placeholder username (to be fetched from API)
 
   // Training states
   const [currentStep, setCurrentStep] = useState(0); // 0=start, 1-4 = Audio steps, 5 = done
-  const [audioData, setAudioData] = useState(mockAudioData); // Fixed object syntax
-  const [isPlaying, setIsPlaying] = useState(false);
+  const [audioData, setAudioData] = useState(mockAudioData); // Audio data for training
+  const [isPlaying, setIsPlaying] = useState(false); // Audio play/pause state
   const [audioCompleted, setAudioCompleted] = useState({
     1: false,
     2: false,
     3: false,
     4: false,
-  });
+  }); // Track completion of each audio step
 
+  // Check for reset token in URL on mount
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const tk = params.get('token');
@@ -35,13 +38,11 @@ function App() {
       setResetToken(tk);
       setMode('completeReset');
     }
-    console.log('Initial mode from URL:', mode); // Debug initial mode
   }, []);
 
-  // Load data on mount
+  // Load saved progress when entering training or dashboard mode
   useEffect(() => {
-    console.log('Mode changed to:', mode); // Debug mode changes
-    if (mode === 'training') {
+    if (mode === 'training' || mode === 'dashboard') {
       const savedProgress = JSON.parse(sessionStorage.getItem('britamTrainingProgress')) || {};
       const savedAudioData = JSON.parse(sessionStorage.getItem('britamTrainingAudioData')) || {};
       if (savedProgress.currentStep) setCurrentStep(savedProgress.currentStep);
@@ -50,19 +51,21 @@ function App() {
     }
   }, [mode]);
 
-  // Save progress whenever things change
+  // Save progress to sessionStorage on change
   useEffect(() => {
-    if (mode === 'training') {
+    if (mode === 'training' || mode === 'dashboard') {
       sessionStorage.setItem('britamTrainingProgress', JSON.stringify({ currentStep, audioCompleted }));
       sessionStorage.setItem('britamTrainingAudioData', JSON.stringify(audioData));
     }
   }, [currentStep, audioCompleted, audioData, mode]);
 
+  // Clear error and success messages
   const clearMessages = () => {
     setError('');
     setSuccess('');
   };
 
+  // Handle login submission
   const handleLogin = async () => {
     clearMessages();
     if (!email || !password) return setError('Please enter email and password');
@@ -70,7 +73,8 @@ function App() {
       const data = await login(email, password);
       if (data.status === 'Success') {
         setToken(data.token);
-        setMode('training');
+        // In real app, fetch user name from API: setUserName(data.user.name || email.split('@')[0]);
+        setMode('dashboard');
       } else if (data.status === 'PasswordNotSet') {
         setMode('setPassword');
       } else {
@@ -81,6 +85,7 @@ function App() {
     }
   };
 
+  // Handle setting initial password
   const handleSetPassword = async () => {
     clearMessages();
     if (!password || !confirmPassword) return setError('Please enter password and confirmation');
@@ -89,7 +94,7 @@ function App() {
       const data = await setPassword(email, password);
       if (data.status === 'Success') {
         setToken(data.token);
-        setMode('training');
+        setMode('dashboard');
       } else {
         setError(data.message || 'Failed to set password');
       }
@@ -98,30 +103,30 @@ function App() {
     }
   };
 
-  const handleSignup = async () =>{
+  // Handle signup
+  const handleSignup = async () => {
     clearMessages();
     if (!email || !password || !confirmPassword) return setError('Please fill all fields');
     if (password !== confirmPassword) return setError('Passwords do not match');
-    try{
-      const data = await setPassword(email,password);
-      if (data.status=== 'Success') {
+    try {
+      const data = await setPassword(email, password); // Note: Adjust API if signup differs from setPassword
+      if (data.status === 'Success') {
         setSuccess('Account created successfully. Please login.');
-        setTimeout(()=> setMode('login'),3000);
-      }else{
+        setTimeout(() => setMode('login'), 3000);
+      } else {
         setError(data.message || 'Failed to sign up');
       }
-      
-    } catch(e){
-      setError('Network error:'+e.message);
+    } catch (e) {
+      setError('Network error:' + e.message);
     }
-  }
+  };
 
+  // Handle password reset request
   const handleResetPassword = async () => {
     clearMessages();
     if (!email) return setError('Please enter email');
     try {
       const data = await resetPassword(email);
-      console.log('Reset Password API response:', data); // Debug API response
       if (data.status === 'Success' || data.ok || data.message === 'Password reset token generated successfully. Please check your email.') {
         setSuccess('Reset link sent to your email');
         setMode('passwordReset');
@@ -133,6 +138,7 @@ function App() {
     }
   };
 
+  // Handle complete password reset
   const handleCompleteReset = async () => {
     clearMessages();
     try {
@@ -151,6 +157,7 @@ function App() {
     }
   };
 
+  // Handle password change
   const handleChangePassword = async () => {
     clearMessages();
     if (!oldPassword || !password || !confirmPassword) return setError('Please fill all fields');
@@ -162,7 +169,7 @@ function App() {
         setOldPassword('');
         setPassword('');
         setConfirmPassword('');
-        setTimeout(() => setMode('training'), 2000);
+        setTimeout(() => setMode('dashboard'), 2000);
       } else {
         setError(data.message || 'Failed to change password');
       }
@@ -171,21 +178,39 @@ function App() {
     }
   };
 
+  // Handle logout
+  const handleLogout = () => {
+    setToken('');
+    sessionStorage.clear(); // Clear all stored progress
+    setMode('login');
+    setCurrentStep(0);
+    setAudioCompleted({
+      1: false,
+      2: false,
+      3: false,
+      4: false,
+    });
+    setUserName('');
+  };
+
+  // Start training
   const handleStart = () => {
     setIsPlaying(true);
     setCurrentStep(1);
   };
 
+  // Move to next audio step
   const handleNext = () => {
     if (currentStep < 4) setCurrentStep((prev) => prev + 1);
     else setCurrentStep(5);
   };
-  const handleReturn = () => {
-    sessionStorage.removeItem('britamTrainingProgress');
-    sessionStorage.removeItem('britamTrainingAudioData');
-    window.location.href = audioData.returnUrl || 'http://example.com';
+
+  // Return to dashboard
+  const handleBackToDashboard = () => {
+    setMode('dashboard');
   };
 
+  // Handle audio play/pause
   const handlePlayPause = (play) => setIsPlaying(play);
   const handleRestart = () => {
     setAudioCompleted((prev) => ({ ...prev, [currentStep]: false }));
@@ -219,16 +244,13 @@ function App() {
           />
           <div style={{textAlign:'right',marginBottom:'1rem'}}>
             <p 
-            style={{cursor:'pointer',textDecoration:'underline', margin:'0', display:'inline-block',color:'rgba(255,255,255,0.5)',fontSize:'0.9rem'}}
-            onClick={()=> setMode('signup')}
-            aria-label="Sign up link"
+              style={{cursor:'pointer',textDecoration:'underline', margin:'0', display:'inline-block',color:'rgba(255,255,255,0.5)',fontSize:'0.9rem'}}
+              onClick={() => setMode('signup')}
+              aria-label="Sign up link"
             >
               Sign up
             </p>
-
           </div>
-
-
           <Button onClick={handleLogin} disabled={!email || !password} aria-label="Login button">
             Login
           </Button>
@@ -239,8 +261,6 @@ function App() {
           >
             Forgot Password
           </p>
-
-
           {error && <p className="error">{error}</p>}
           {success && <p className="success">{success}</p>}
         </div>
@@ -249,36 +269,38 @@ function App() {
         <div className="auth-card">
           <h1>Sign up</h1>
           <input 
-          type="email" 
-          value={email}
-          onChange={(e) =>setEmail(e.target.value)}
-          placeholder="Email"
-          aria-label="Email input for signup"
+            type="email" 
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="Email"
+            aria-label="Email input for signup"
           />
-          <input type="password" 
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          placeholder="Password"
-          aria-label="Password input for signup"
+          <input 
+            type="password" 
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            placeholder="Password"
+            aria-label="Password input for signup"
           />
-          <input type="password" 
-          value={confirmPassword}
-          onChange={(e) => setConfirmPassword(e.target.value)}
-          placeholder="Confirm Password"
-          aria-label="Confirm password inpu for signup"
+          <input 
+            type="password" 
+            value={confirmPassword}
+            onChange={(e) => setConfirmPassword(e.target.value)}
+            placeholder="Confirm Password"
+            aria-label="Confirm password input for signup"
           />
-          <Button onClick={handleSignup} disabled={!email || !password ||!confirmPassword} aria-label ="Sign up button">
+          <Button onClick={handleSignup} disabled={!email || !password || !confirmPassword} aria-label="Sign up button">
             Sign up
           </Button>
           <p 
             style={{cursor:'pointer', textDecoration:'underline', marginTop:'1rem'}}
-            onClick={() =>setMode('login')}
+            onClick={() => setMode('login')}
             aria-label="Back to login link"
           >
             Back to login
           </p>
-          {error && <p className="error">{error} </p> }
-          {success && <p className="success">{success} </p> }
+          {error && <p className="error">{error}</p>}
+          {success && <p className="success">{success}</p>}
         </div>
       )}
       {mode === 'setPassword' && (
@@ -343,7 +365,7 @@ function App() {
           <input
             type="password"
             value={password}
-            onChange={(e) => setPassword(e.target.value)}
+            onClick={(e) => setPassword(e.target.value)}
             placeholder="New Password"
             aria-label="New password input"
           />
@@ -436,23 +458,47 @@ function App() {
           </Button>
           <p
             style={{ cursor: 'pointer', textDecoration: 'underline', marginTop: '1rem' }}
-            onClick={() => setMode('training')}
-            aria-label="Back to training link"
+            onClick={() => setMode('dashboard')}
+            aria-label="Back to dashboard link"
           >
-            Proceed to Training
+            Back to Dashboard
           </p>
           {error && <p className="error">{error}</p>}
           {success && <p className="success">{success}</p>}
         </div>
       )}
+      {mode === 'dashboard' && (
+        <div className="dashboard">
+          <h1>Britam Agent Training</h1>
+          <h2>Good Morning, {userName}</h2>
+          <div className="cards-container">
+            <div className="card" onClick={() => setMode('training')}>
+              <h3>Training Audios</h3>
+            </div>
+            <div className="card" onClick={() => setMode('changePassword')}>
+              <h3>Account Management</h3>
+            </div>
+          </div>
+          <div className="logout-container">
+            <Button onClick={handleLogout} aria-label="Logout button">
+              Logout
+            </Button>
+          </div>
+        </div>
+      )}
       {mode === 'training' && (
-        <>
+        <div className="training-container">
           <h1>Britam Agent Training</h1>
           <p>Listen to the audio until it ends, then click Next</p>
           {currentStep === 0 && (
-            <Button onClick={handleStart} aria-label="Start training">
-              Start
-            </Button>
+            <>
+              <Button onClick={handleStart} aria-label="Start training">
+                Start
+              </Button>
+              <Button onClick={handleBackToDashboard} aria-label="Back to dashboard">
+                Back
+              </Button>
+            </>
           )}
           {currentStep > 0 && currentStep < 5 && currentAudio && (
             <div>
@@ -465,24 +511,27 @@ function App() {
                 onPlayPause={handlePlayPause}
                 aria-label={`Audio ${currentStep} player`}
               />
-              <button
+              <Button
                 onClick={handleNext}
                 disabled={!audioCompleted[currentStep]}
                 aria-label={`Next audio, disabled until audio ${currentStep} completes`}
               >
                 Next
-              </button>
+              </Button>
+              <Button onClick={handleBackToDashboard} aria-label="Back to dashboard">
+                Back
+              </Button>
             </div>
           )}
           {currentStep === 5 && (
             <div>
               <p>All audios complete!</p>
-              <Button onClick={handleReturn} aria-label="Return to main page">
-                Return
+              <Button onClick={handleBackToDashboard} aria-label="Back to dashboard">
+                Back to Dashboard
               </Button>
             </div>
           )}
-        </>
+        </div>
       )}
     </MainContainer>
   );

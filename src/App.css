@@ -1,33 +1,37 @@
-#root{
-  width: 100%;/* width to whole screen*/
+/* Root styling for the entire app */
+#root {
+  width: 100%;
   min-height: 100vh;
   margin: 0 auto;
   padding: 1rem;
   box-sizing: border-box;
   text-align: center;
-  background: linear-gradient(135deg,#1a1a1a,#0865ce);
+  background: linear-gradient(135deg, #ffffff, #e6f7ff); /* Light blue tint for Britam theme */
   overflow-y: auto;
   display: flex;
   align-items: center;
   justify-content: center;
+  color: #213547; /* Dark text for light theme */
 }
 
+/* Authentication card styling */
 .auth-card {
   width: 100%;
   max-width: 450px;
   margin: 1rem auto;
   padding: 1rem;
-  background: linear-gradient(135deg, rgba(42,42,42,0.8),rgba(2, 63, 59, 0.8));
+  background: white;
   border-radius: 35px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-  color: white;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  color: #213547;
   position: relative;
   overflow: hidden;
   z-index: 8;
   box-sizing: border-box;
 }
 
-.auth-card::before{
+/* Gradient animation for auth card background */
+.auth-card::before {
   content: "";
   position: absolute;
   inset: 0;
@@ -35,204 +39,245 @@
   background: linear-gradient(
     90deg,
     transparent,
-    rgba(255,255,255,0.2),
+    rgba(0,102,204,0.1),
     transparent
-  ) ;
+  );
   animation: waveGlitter 7s ease-in-out infinite;
 }
 
-h1{
+h1 {
   font-size: 24px;
+  color: #0066cc; /* Britam blue */
 }
 
-@keyframes waveGlitter{
-  0% {transform: translateX(-100%);}
-  50% {transform: translateX(100%);}
-  100% {transform: translateX(-100%);}
+/* Animation for wave effect */
+@keyframes waveGlitter {
+  0% { transform: translateX(-100%); }
+  50% { transform: translateX(100%); }
+  100% { transform: translateX(-100%); }
 }
 
-.auth-card input{
+/* Input field styling */
+.auth-card input {
   width: 100%;
-  margin:0.5rem 0;
+  margin: 0.5rem 0;
   border-radius: 12px;
-  border: none;
-  background: rgba(255, 255, 255, 0.1);
-  color: white;
+  border: 1px solid #ccc;
+  background: #f9f9f9;
+  color: #213547;
   font-size: 1rem;
   padding: 10px;
   outline: none;
   box-sizing: border-box;
 }
 
+/* Button styling */
 .auth-card button {
-  margin-top: 0.25rem; /* Reduced from 0.5rem to 0.25rem */
+  margin-top: 0.25rem;
   padding: 0.5rem 1rem;
   margin: -0.9rem;
   font-size: 0.95rem;
   cursor: pointer;
-  background: linear-gradient(90deg, #14c5c5, #208ee1);
+  background: linear-gradient(90deg, #0066cc, #3399ff); /* Britam blue gradients */
   color: white;
   border: none;
   border-radius: 45px;
   transition: transform 0.2s, background 0.3s;
 }
 
-.auth-card input:focus{
-  border: 1px solid #fff;
+/* Focused input styling */
+.auth-card input:focus {
+  border: 1px solid #0066cc;
 }
 
-.auth-card input::placeholder{
-  color: #bbb;
+/* Placeholder text styling */
+.auth-card input::placeholder {
+  color: #888;
   font-style: italic;
 }
 
-.auth-card p[aria-label="Forgot password link"]{
+/* Forgot password link styling */
+.auth-card p[aria-label="Forgot password link"] {
   cursor: pointer;
   text-decoration: underline;
   margin-top: 1rem;
-  color:rgba(255, 255, 255, 0.5);
+  color: #666;
   font-size: 0.9rem;
   transition: color 0.3s ease;
 }
 
-.auth-card p[aria-label="Forgot password link"]:hover{
-  color: #fff;
+.auth-card p[aria-label="Forgot password link"]:hover {
+  color: #0066cc;
 }
 
-.auth-card p[aria-label="Forgot password link"]::after{
-  content: "";
-  position: absolute;
-  bottom: -2px;
-  width: 0;
-  border-radius: 6px;
-  height: 1px;
-  background: currentColor;
-  transition: width 0.3s ease;
-}
-
-.auth-card p[aria-label="Forgot password link"]:hover::after{
-  width: 100%;
-}
-
-.error{
+/* Error and success message styling */
+.error {
   color: red;
   margin-top: 1rem;
 }
 
-.success{
+.success {
   color: green;
   margin-top: 1rem;
 }
 
-.input-wrapper{
-  position: relative;
-  margin: 1.2rem 0;
-  width: 100%;
-}
-
-.input:focus {
-  box-shadow: 5.5px 7px 0 black;
-}
-
-
-.input-wrapper input{
-  width: 100%;
-  padding: 0.9rem 2.5rem 0.9rem 2.5rem;
-  font-size: 1rem;
-  border-radius: 8px;
-  border: 1px solid #ccc;
-  background: rgba(255,255,255,0.1);
-  color: white;
-  box-sizing: border-box;
-}
-
-.input-wrapper label{
-  position: absolute;
-  left: 2.5rem;
-  top: 50%;
-  transform: translateY(-50%);
-  color: #bbb;
-  pointer-events: none;
-  transition: 0.2s ease all;
-  font-size: 1rem;
-}
-
-.input-wrapper input:focus + label,
-.input-wrapper label.float {
-  top: -8px;
-  left: 2.2rem;
-  font-size: 0.75rem;
-  color: #4CAF50;
-  background: linear-gradient(135deg, rgba(42,42,42,0.8)), rgba(2,63,59,0.8);
-  padding: 0 4px;
-  border-radius: 4px;
-}
-
-.input-wrapper .icon{
-  position: absolute;
-  left: 8px;
-  top: 50%;
-  transform: translateY(-50%);
-  color: #ccc;
-  font-size: 1.2rem;
-}
-
-.auth-card input::placeholder{
-  color: #ccc;
-}
-
-.auth-card h1{
-  margin-bottom: 1rem;
-}
-
-.auth-card p{
-  margin: 0.5rem 0;
-}
-
-.error{
-  color: red;
-  margin-top: 1rem;
-}
-
-.success{
-  color: green;
-  margin-top: 1rem;
-}
-
-button{
+/* General button styling */
+button {
   padding: 0.5rem 1rem;
   margin: 0.5rem;
   font-size: 0.95rem;
   cursor: pointer;
-  background:linear-gradient(90deg, #14c5c5,#208ee1);
+  background: linear-gradient(90deg, #0066cc, #3399ff);
   color: white;
   border: none;
   border-radius: 45px;
   transition: transform 0.2s, background 0.3s;
 }
 
-button:hover:not(:disabled){
+/* Hover effect for buttons */
+button:hover:not(:disabled) {
   transform: scale(1.05);
-  background: linear-gradient(90deg,#17c2c2,#331bbe);
-  transform: translateY(-7px);
-  box-shadow: 0px 15px 20px rgba(46, 229, 157, 0.4);
+  background: linear-gradient(90deg, #004d99, #0066cc);
+  box-shadow: 0px 15px 20px rgba(0, 102, 204, 0.2);
 }
 
-button:disabled{
+/* Disabled button styling */
+button:disabled {
   background-color: #cccccc;
   cursor: not-allowed;
   opacity: 0.6;
 }
 
-@media (max-width: 480px){
-  #root{
+/* Dashboard styling */
+.dashboard {
+  width: 100%;
+  max-width: 800px;
+  text-align: center;
+}
+
+.dashboard h2 {
+  font-size: 1.5rem;
+  margin-bottom: 2rem;
+  color: #0066cc;
+}
+
+/* Cards container for dashboard */
+.cards-container {
+  display: flex;
+  justify-content: center;
+  gap: 2rem;
+  flex-wrap: wrap;
+}
+
+.card {
+  width: 200px;
+  height: 150px;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 16px rgba(0,0,0,0.15);
+}
+
+.card h3 {
+  font-size: 1.2rem;
+  color: #0066cc;
+  text-align: center;
+}
+
+/* Logout button container */
+.logout-container {
+  margin-top: 3rem;
+  display: flex;
+  justify-content: center;
+}
+
+/* Training container styling */
+.training-container {
+  width: 100%;
+  max-width: 600px;
+  text-align: center;
+  background: white;
+  padding: 2rem;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.training-container h1 {
+  color: #0066cc;
+}
+
+.training-container p {
+  color: #555;
+}
+
+/* Responsive design */
+@media (max-width: 480px) {
+  #root {
     padding: 0.5rem;
   }
-  button{
+  button {
     width: 100%;
     font-size: 0.9rem;
   }
-  .auth-card{
+  .auth-card {
     width: 100%;
   }
+  .cards-container {
+    flex-direction: column;
+    align-items: center;
+  }
+  .card {
+    width: 100%;
+    max-width: 300px;
+  }
+}
+
+/* Root CSS variables */
+:root {
+  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+
+  color-scheme: light;
+  color: #213547;
+  background-color: #ffffff;
+
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+a {
+  font-weight: 500;
+  color: #0066cc;
+  text-decoration: inherit;
+}
+a:hover {
+  color: #004d99;
+}
+
+body {
+  margin: 0;
+  display: flex;
+  place-items: center;
+  min-width: 320px;
+  min-height: 100vh;
+  overflow: hidden;
+}
+
+h1 {
+  font-size: 3.2em;
+  line-height: 1.1;
+  color: #0066cc;
+  margin-bottom: 1rem;
 }
