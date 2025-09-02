@@ -53,3 +53,66 @@ export async function changePassword(oldPassword, newPassword, token){
     });
     return res.json();
 }
+
+
+//training API functions
+export async function getNextTraining(token){
+    const res = await fetch(`${BASE_URL}/api/Training/next`,{
+        method:'GET',
+        headers:{
+            'Content-Type' : 'application/json',
+            'Authorization' : `Bearer ${token}`,
+        },
+    });
+    if(!res.ok) throw new Error(`HTTP error! status ${res.status}`);
+    return res.json();
+}
+
+export async function getTrainingById(token, id){
+    const res = await fetch(`${BASE_URL}/api/Training/${id}`, {
+        method: 'GET',
+        headers: {
+            'Content-Type' : 'application/json',
+            'Authorization' : `Bearer ${token}`,
+        },
+    });
+    if(!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+    return res.json();
+}
+
+export async function updateTrainingProgress(token,moduleId, watchSeconds){
+    const res = await fetch(`${BASE_URL}/api/Training/progress`,{
+        method: 'POST',
+        headers: {
+            'Content-Type' : 'application/json',
+            'Authorization' : `Bearer ${token}`
+        },
+        body: JSON.stringify({moduleId, watchSeconds}),
+    });
+    if(!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+    return res.json();
+}
+
+export async function getTrainingStatus(token){
+    const res = await fetch(`${BASE_URL}/api/Training/status`,{
+        method: 'GET',
+        headers: {
+            'Content-Type' : 'application/json',
+            'Authorization' : `Bearer ${token}`,
+        },
+    });
+    if(!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+    return res.json();
+}
+
+export async function getCompletionReport(token){
+    const res = await fetch(`${BASE_URL}/api/Training/completion-report`,{
+        method: 'GET',
+        headers:{
+            'Content-Type' : 'application/json',
+            'Authorization' : `Bearer ${token}`,
+        },
+    });
+    if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+    return res.json();
+}
