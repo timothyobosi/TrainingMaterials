@@ -3,7 +3,10 @@ import './App.css';
 import MainContainer from './components/MainContainer';
 import Button from './components/Button';
 import AudioPlayer from './components/AudioPlayer';
-import { login, setPassword, completeResetPassword, changePassword, resetPassword, getNextTraining, updateTrainingProgress } from './api/auth';
+import { login, setPassword, completeResetPassword, changePassword, resetPassword, getNextTraining, getTrainingById, updateTrainingProgress } from './api/auth';
+
+// Use the environment variable for TRAINING_BASEURL
+const TRAINING_BASEURL = import.meta.env.VITE_API_TARGET + import.meta.env.VITE_TRAINING_BASE_URL;
 
 function App() {
   const [mode, setMode] = useState('login');
@@ -17,10 +20,12 @@ function App() {
   const [resetToken, setResetToken] = useState('');
   const [firstName, setFirstName] = useState(''); //first name from log in response
   const [greeting, setGreeting] = useState('')//State for time-based greeting
+  const [isEmailValid, setIsEmailValid] = useState(false);
+  const [isPasswordValid, setIsPasswordValid] = useState(false);
 
   // Training states
   const [currentStep, setCurrentStep] = useState(0); // 0=start, 1-4 = Audio steps, 5 = done
-  const [audioData, setAudioData] = useState({audio1:null, audio2:null,audio3:null,audio4:null}); // Fixed object syntax
+  const [audioData, setAudioData] = useState({ audio1: null, audio2: null, audio3: null, audio4: null }); // Fixed object syntax
   const [isPlaying, setIsPlaying] = useState(false);
   const [audioCompleted, setAudioCompleted] = useState({
     1: false,
@@ -30,10 +35,10 @@ function App() {
   });
   //Store module IDs
   const [moduleIds, setModuleIds] = useState({
-    1:null,
-    2:null,
-    3:null,
-    4:null
+    1: 1, // Hardcoded for now, adjust based on API
+    2: 2,
+    3: 3,
+    4: 4
   });
 
   useEffect(() => {
@@ -49,26 +54,26 @@ function App() {
     const savedToken = localStorage.getItem('britamToken');
     const savedFirstName = localStorage.getItem('britamFirstName');
     const savedMode = localStorage.getItem('britamMode');
-    if(savedToken){
+    if (savedToken) {
       setToken(savedToken);
       setFirstName(savedFirstName || '');
-      setMode(savedMode || 'dashboard'); //defau;t to dash if mode not saved
+      setMode(savedMode || 'dashboard'); //default to dash if mode not saved
     }
 
     //set Time-based greeting
     const hour = new Date().getHours();
     let newGreeting = 'Morning';
-    if( hour>=12 && hour < 18) newGreeting ='Afternoon';
+    if (hour >= 12 && hour < 18) newGreeting = 'Afternoon';
     else if (hour >= 18) newGreeting = 'Evening';
     setGreeting(newGreeting);
   }, []);
 
-  useEffect(()=>{
+  useEffect(() => {
     console.log('Mode changed to:', mode);
-    if (mode === 'training' && token){
+    if (mode === 'training' && token) {
       fetchTrainingData();
     }
-  },[mode,token]);
+  }, [mode, token]);
 
   // Load data on mount
   useEffect(() => {
@@ -88,7 +93,7 @@ function App() {
     if (mode === 'training') {
       sessionStorage.setItem('britamTrainingProgress', JSON.stringify({ currentStep, audioCompleted }));
       sessionStorage.setItem('britamTrainingAudioData', JSON.stringify(audioData));
-      sessionStorage.setItem('britamModuleIds', JSON.stringify(moduleIds))
+      sessionStorage.setItem('britamModuleIds', JSON.stringify(moduleIds));
     }
   }, [currentStep, audioCompleted, audioData, moduleIds]);
 
@@ -96,6 +101,18 @@ function App() {
     setError('');
     setSuccess('');
   };
+
+  // Email validation
+  useEffect(() => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    setIsEmailValid(emailRegex.test(email));
+  }, [email]);
+
+  // Password validation (basic: non-empty)
+  useEffect(() => {
+    setIsPasswordValid(password.length > 0);
+  }, [password]);
+
 
   const handleLogin = async () => {
     clearMessages();
@@ -110,7 +127,7 @@ function App() {
         setFirstName(fname);
         localStorage.setItem('britamToken', data.token);
         localStorage.setItem('britamFirstName', fname);
-        setMode('dashboard'); //set to dahsborad from training
+        setMode('dashboard'); //set to dashboard from training
       } else if (data.status === 'PasswordNotSet') {
         setMode('setPassword');
       } else {
@@ -141,23 +158,22 @@ function App() {
     }
   };
 
-  const handleSignup = async () =>{
+  const handleSignup = async () => {
     clearMessages();
     if (!email || !password || !confirmPassword) return setError('Please fill all fields');
     if (password !== confirmPassword) return setError('Passwords do not match');
-    try{
-      const data = await setPassword(email,password);
-      if (data.status=== 'Success') {
+    try {
+      const data = await setPassword(email, password);
+      if (data.status === 'Success') {
         setSuccess('Account created successfully. Please login.');
-        setTimeout(()=> setMode('login'),3000);
-      }else{
+        setTimeout(() => setMode('login'), 3000);
+      } else {
         setError(data.message || 'Failed to sign up');
       }
-      
-    } catch(e){
-      setError('Network error:'+e.message);
+    } catch (e) {
+      setError('Network error:' + e.message);
     }
-  }
+  };
 
   const handleResetPassword = async () => {
     clearMessages();
@@ -215,25 +231,29 @@ function App() {
   };
 
   //Logout handler
-  const handleLogout = () =>{
+  const handleLogout = () => {
     localStorage.clear();
     setToken('');
     setFirstName('');
     setMode('login');
-  }
+  };
 
-  const fetchTrainingData = async() =>{
-    try{
-      for (let step =1; step <=4; step++){
-        const data = await getNextTraining(token);
-        if (data.audioUrl && data.moduleId){
-          setAudioData(prev => ({...prev,[`audio${step}`]: data.audioUrl}));
-          setModuleIds(prev => ({...prev,[step]: data.moduleId}));
-        }else{
-          setError('Failed to fetch training audio')
+  const fetchTrainingData = async () => {
+    try {
+      for (let step = 1; step <= 4; step++) {
+        const moduleId = moduleIds[step]; // Use predefined module IDs
+        const data = await getTrainingById(token, moduleId);
+        console.log('API response for step', step, ':', data); // Debug API response with step
+        if (data.filePath && data.moduleId) {
+          const fullAudioUrl = `${TRAINING_BASEURL}${data.filePath}`; // Current: /api/Training/videos/Lesson1-IntroductiontoInsurance.mp3
+          console.log('Constructed URL:', fullAudioUrl); // Debug constructed URL
+          setAudioData(prev => ({ ...prev, [`audio${step}`]: fullAudioUrl }));
+          setModuleIds(prev => ({ ...prev, [step]: data.moduleId }));
+        } else {
+          setError(`Failed to fetch training audio for step ${step}`);
         }
       }
-    }catch(e){
+    } catch (e) {
       setError('Network error:' + e.message);
     }
   };
@@ -244,8 +264,12 @@ function App() {
   };
 
   const handleNext = () => {
-    if (currentStep < 4) setCurrentStep((prev) => prev + 1);
-    else setCurrentStep(5);
+    if (currentStep < 4) {
+      setCurrentStep((prev) => prev + 1); //set isPlaying to true to start the next audio
+      setIsPlaying(true); //ensure next audio plays automatically
+    } else {
+      setCurrentStep(5);
+    }
   };
   const handleReturn = () => {
     setMode('dashboard');
@@ -254,17 +278,17 @@ function App() {
   const handlePlayPause = (play) => setIsPlaying(play);
   const handleRestart = () => {
     setAudioCompleted((prev) => ({ ...prev, [currentStep]: false }));
-    setIsPlaying(true);
+    setIsPlaying(true); //triggers playback
   };
 
-  const handleEnded =  async () => {
+  const handleEnded = async () => {
     setAudioCompleted((prev) => ({ ...prev, [currentStep]: true }));
-    setIsPlaying(false);
-    if(moduleIds[currentStep]){
-      try{
-        await updateTrainingProgress(token, moduleIds[currentStep],0); //placeholder for duration
-      } catch(e){
-        setError('Failed to update progress:' +e.message);
+    setIsPlaying(false); //Stop playback after ending
+    if (moduleIds[currentStep]) {
+      try {
+        await updateTrainingProgress(token, moduleIds[currentStep], 0); //placeholder for duration
+      } catch (e) {
+        setError('Failed to update progress:' + e.message);
       }
     }
   };
@@ -279,29 +303,43 @@ function App() {
           <input
             type="email"
             value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            onChange={(e) => {
+              setEmail(e.target.value);
+              const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+              if (emailRegex.test(e.target.value)) {
+                e.target.style.borderColor = '#0e40d7'; // Blue for valid email
+              } else {
+                e.target.style.borderColor = 'red'; // Red for invalid
+              }
+            }}
             placeholder="Email"
             aria-label="Email input"
+            style={{ borderColor: isEmailValid ? '#0e40d7' : 'red' }}
           />
           <input
             type="password"
             value={password}
-            onChange={(e) => setPassword(e.target.value)}
+            onChange={(e) => {
+              setPassword(e.target.value);
+              if (e.target.value.length > 0) {
+                e.target.style.borderColor = '#0e40d7'; // Blue for valid password
+              } else {
+                e.target.style.borderColor = 'red'; // Red for empty
+              }
+            }}
             placeholder="Password"
             aria-label="Password input"
+            style={{ borderColor: isPasswordValid ? '#0e40d7' : 'red' }}
           />
-          <div style={{textAlign:'right',marginBottom:'1rem'}}>
-            <p 
-            style={{cursor:'pointer',textDecoration:'underline', margin:'0', display:'inline-block',color:'rgba(255,255,255,0.5)',fontSize:'0.9rem'}}
-            onClick={()=> setMode('signup')}
-            aria-label="Sign up link"
+          <div style={{ textAlign: 'right', marginBottom: '1rem' }}>
+            <p
+              style={{ cursor: 'pointer', textDecoration: 'underline', margin: '0', display: 'inline-block', color: '#0e40d7', fontSize: '0.9rem' }} // Britam blue
+              onClick={() => setMode('signup')}
+              aria-label="Sign up link"
             >
               Sign up
             </p>
-
           </div>
-
-
           <Button onClick={handleLogin} disabled={!email || !password} aria-label="Login button">
             Login
           </Button>
@@ -312,8 +350,6 @@ function App() {
           >
             Forgot Password
           </p>
-
-
           {error && <p className="error">{error}</p>}
           {success && <p className="success">{success}</p>}
         </div>
@@ -321,56 +357,99 @@ function App() {
       {mode === 'signup' && (
         <div className="auth-card">
           <h1>Sign up</h1>
-          <input 
-          type="email" 
-          value={email}
-          onChange={(e) =>setEmail(e.target.value)}
-          placeholder="Email"
-          aria-label="Email input for signup"
+          <input
+            type="email"
+            value={email}
+            onChange={(e) => {
+              setEmail(e.target.value);
+              const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+              if (emailRegex.test(e.target.value)) {
+                e.target.style.borderColor = '#0e40d7'; // Blue for valid email
+              } else {
+                e.target.style.borderColor = 'red'; // Red for invalid
+              }
+            }}
+            placeholder="Email"
+            aria-label="Email input for signup"
+            style={{ borderColor: isEmailValid ? '#0e40d7' : 'red' }}
           />
-          <input type="password" 
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          placeholder="Password"
-          aria-label="Password input for signup"
+          <input
+            type="password"
+            value={password}
+            onChange={(e) => {
+              setPassword(e.target.value);
+              if (e.target.value.length > 0) {
+                e.target.style.borderColor = '#0e40d7'; // Blue for valid password
+              } else {
+                e.target.style.borderColor = 'red'; // Red for empty
+              }
+            }}
+            placeholder="Password"
+            aria-label="Password input for signup"
+            style={{ borderColor: isPasswordValid ? '#0e40d7' : 'red' }}
           />
-          <input type="password" 
-          value={confirmPassword}
-          onChange={(e) => setConfirmPassword(e.target.value)}
-          placeholder="Confirm Password"
-          aria-label="Confirm password inpu for signup"
+          <input
+            type="password"
+            value={confirmPassword}
+            onChange={(e) => {
+              setConfirmPassword(e.target.value);
+              if (e.target.value.length > 0 && e.target.value === password) {
+                e.target.style.borderColor = '#0e40d7'; // Blue for valid confirmation
+              } else {
+                e.target.style.borderColor = 'red'; // Red for mismatch
+              }
+            }}
+            placeholder="Confirm Password"
+            aria-label="Confirm password input for signup"
+            style={{ borderColor: confirmPassword === password && confirmPassword.length > 0 ? '#0e40d7' : 'red' }}
           />
-          <Button onClick={handleSignup} disabled={!email || !password ||!confirmPassword} aria-label ="Sign up button">
+          <Button onClick={handleSignup} disabled={!email || !password || !confirmPassword} aria-label="Sign up button">
             Sign up
           </Button>
-          <p 
-            style={{cursor:'pointer', textDecoration:'underline', marginTop:'1rem'}}
-            onClick={() =>setMode('login')}
+          <p
+            style={{ cursor: 'pointer', textDecoration: 'underline', marginTop: '1rem' }}
+            onClick={() => setMode('login')}
             aria-label="Back to login link"
           >
             Back to login
           </p>
-          {error && <p className="error">{error} </p> }
-          {success && <p className="success">{success} </p> }
+          {error && <p className="error">{error}</p>}
+          {success && <p className="success">{success}</p>}
         </div>
       )}
       {mode === 'setPassword' && (
-        <div className="auth-card">
+       <div className="auth-card">
           <h1>Set Password</h1>
           <p>For email: {email}</p>
           <input
             type="password"
             value={password}
-            onChange={(e) => setPassword(e.target.value)}
+            onChange={(e) => {
+              setPassword(e.target.value);
+              if (e.target.value.length > 0) {
+                e.target.style.borderColor = '#0e40d7'; // Blue for valid password
+              } else {
+                e.target.style.borderColor = 'red'; // Red for empty
+              }
+            }}
             placeholder="New password"
             aria-label="New password input"
+            style={{ borderColor: isPasswordValid ? '#0e40d7' : 'red' }}
           />
           <input
             type="password"
             value={confirmPassword}
-            onChange={(e) => setConfirmPassword(e.target.value)}
+            onChange={(e) => {
+              setConfirmPassword(e.target.value);
+              if (e.target.value.length > 0 && e.target.value === password) {
+                e.target.style.borderColor = '#0e40d7'; // Blue for valid confirmation
+              } else {
+                e.target.style.borderColor = 'red'; // Red for mismatch
+              }
+            }}
             placeholder="Confirm password"
             aria-label="Confirm password input"
+            style={{ borderColor: confirmPassword === password && confirmPassword.length > 0 ? '#0e40d7' : 'red' }}
           />
           <Button onClick={handleSetPassword} disabled={!password || !confirmPassword} aria-label="Set password button">
             Set Password
@@ -385,9 +464,18 @@ function App() {
           <input
             type="email"
             value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            onChange={(e) => {
+              setEmail(e.target.value);
+              const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+              if (emailRegex.test(e.target.value)) {
+                e.target.style.borderColor = '#0e40d7'; // Blue for valid email
+              } else {
+                e.target.style.borderColor = 'red'; // Red for invalid
+              }
+            }}
             placeholder="Email"
             aria-label="Email input for reset"
+            style={{ borderColor: isEmailValid ? '#0e40d7' : 'red' }}
           />
           <Button onClick={handleResetPassword} disabled={!email} aria-label="Send reset link button">
             Send Reset Link
@@ -416,23 +504,48 @@ function App() {
           <input
             type="password"
             value={password}
-            onChange={(e) => setPassword(e.target.value)}
+            onChange={(e) => {
+              setPassword(e.target.value);
+              if (e.target.value.length > 0) {
+                e.target.style.borderColor = '#0e40d7'; // Blue for valid password
+              } else {
+                e.target.style.borderColor = 'red'; // Red for empty
+              }
+            }}
             placeholder="New Password"
             aria-label="New password input"
+            style={{ borderColor: isPasswordValid ? '#0e40d7' : 'red' }}
           />
           <input
             type="password"
             value={confirmPassword}
-            onChange={(e) => setConfirmPassword(e.target.value)}
+            onChange={(e) => {
+              setConfirmPassword(e.target.value);
+              if (e.target.value.length > 0 && e.target.value === password) {
+                e.target.style.borderColor = '#0e40d7'; // Blue for valid confirmation
+              } else {
+                e.target.style.borderColor = 'red'; // Red for mismatch
+              }
+            }}
             placeholder="Confirm Password"
             aria-label="Confirm password input"
+            style={{ borderColor: confirmPassword === password && confirmPassword.length > 0 ? '#0e40d7' : 'red' }}
           />
           <input
             type="email"
             value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            onChange={(e) => {
+              setEmail(e.target.value);
+              const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+              if (emailRegex.test(e.target.value)) {
+                e.target.style.borderColor = '#0e40d7'; // Blue for valid email
+              } else {
+                e.target.style.borderColor = 'red'; // Red for invalid
+              }
+            }}
             placeholder="Email"
             aria-label="Email input"
+            style={{ borderColor: isEmailValid ? '#0e40d7' : 'red' }}
           />
           <Button
             onClick={handleCompleteReset}
@@ -458,16 +571,32 @@ function App() {
           <input
             type="password"
             value={password}
-            onChange={(e) => setPassword(e.target.value)}
+            onChange={(e) => {
+              setPassword(e.target.value);
+              if (e.target.value.length > 0) {
+                e.target.style.borderColor = '#0e40d7'; // Blue for valid password
+              } else {
+                e.target.style.borderColor = 'red'; // Red for empty
+              }
+            }}
             placeholder="New Password"
             aria-label="New Password input for reset"
+            style={{ borderColor: isPasswordValid ? '#0e40d7' : 'red' }}
           />
           <input
             type="password"
             value={confirmPassword}
-            onChange={(e) => setConfirmPassword(e.target.value)}
+            onChange={(e) => {
+              setConfirmPassword(e.target.value);
+              if (e.target.value.length > 0 && e.target.value === password) {
+                e.target.style.borderColor = '#0e40d7'; // Blue for valid confirmation
+              } else {
+                e.target.style.borderColor = 'red'; // Red for mismatch
+              }
+            }}
             placeholder="Confirm Password"
             aria-label="Confirm password input for reset"
+            style={{ borderColor: confirmPassword === password && confirmPassword.length > 0 ? '#0e40d7' : 'red' }}
           />
           <Button onClick={handleCompleteReset} disabled={!password || !confirmPassword} aria-label="Reset password button">
             Reset Password
@@ -482,23 +611,47 @@ function App() {
           <input
             type="password"
             value={oldPassword}
-            onChange={(e) => setOldPassword(e.target.value)}
+            onChange={(e) => {
+              setOldPassword(e.target.value);
+              if (e.target.value.length > 0) {
+                e.target.style.borderColor = '#0e40d7'; // Blue for valid password
+              } else {
+                e.target.style.borderColor = 'red'; // Red for empty
+              }
+            }}
             placeholder="Old Password"
             aria-label="Old password input"
+            style={{ borderColor: oldPassword.length > 0 ? '#0e40d7' : 'red' }}
           />
           <input
             type="password"
             value={password}
-            onChange={(e) => setPassword(e.target.value)}
+            onChange={(e) => {
+              setPassword(e.target.value);
+              if (e.target.value.length > 0) {
+                e.target.style.borderColor = '#0e40d7'; // Blue for valid password
+              } else {
+                e.target.style.borderColor = 'red'; // Red for empty
+              }
+            }}
             placeholder="New Password"
             aria-label="New password input"
+            style={{ borderColor: isPasswordValid ? '#0e40d7' : 'red' }}
           />
           <input
             type="password"
             value={confirmPassword}
-            onChange={(e) => setConfirmPassword(e.target.value)}
+            onChange={(e) => {
+              setConfirmPassword(e.target.value);
+              if (e.target.value.length > 0 && e.target.value === password) {
+                e.target.style.borderColor = '#0e40d7'; // Blue for valid confirmation
+              } else {
+                e.target.style.borderColor = 'red'; // Red for mismatch
+              }
+            }}
             placeholder="Confirm new password"
             aria-label="Confirm new password input"
+            style={{ borderColor: confirmPassword === password && confirmPassword.length > 0 ? '#0e40d7' : 'red' }}
           />
           <Button
             onClick={handleChangePassword}
@@ -522,14 +675,17 @@ function App() {
         <div className="dashboard-container">
           <h1 className="greeting">Good {greeting},{firstName}</h1>
           <div className="dash-grid">
-            <div className="dashboard-card" onClick={()=>setMode('training')}>
+            <div className="dashboard-card" onClick={() => setMode('training')}>
               <h2>Training Audios</h2>
             </div>
-            <div className="dashboard-card" onClick={()=>setMode('changePassword')}>
+            <div className="dashboard-card" onClick={() => setMode('changePassword')}>
               <h2>Account Management</h2>
             </div>
           </div>
-          <p className="logout-link" onClick={handleLogout}>Logout</p>            
+          <p className="logout-link" onClick={handleLogout}>Logout</p>
+          <p className="back-link" onClick={() => setMode('dashboard')}>
+        Back to dashboard
+      </p>
         </div>
       )}
       {mode === 'training' && (
@@ -571,9 +727,7 @@ function App() {
           )}
         </div>
       )}
-      <p className="back-link" onClick={()=>setMode('dashboard')}>
-        Back to dashboard
-      </p>
+      
     </MainContainer>
   );
 }

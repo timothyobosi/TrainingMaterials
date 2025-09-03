@@ -16,7 +16,7 @@ const Button = ({children, onClick, disabled}) => {
             borderRadius:'8px,',
             transition:'transform 0.2s, background 0.3s',
         }}   
-        onMouseOver={!disabled ? (e) => (e.target.style.background='linear-gradient(90deg, #45a049,#66BB6A)'):undefined}
+        onMouseOver={!disabled ? (e) => (e.target.style.background='linear-gradient(90deg, #2f13baff,#66BB6A)'):undefined}
         onMouseOut={!disabled ? (e) => (e.target.style.background='linear-gradient(90deg, #1914a1ff,#66BB6A)'):undefined}
         onFocus={!disabled ? (e) => (e.target.style.background='linear-gradient(90deg, #45a049,#66BB6A)'):undefined}
         onBlur={!disabled ? (e) => (e.target.style.background='linear-gradient(90deg, #45a049,#66BB6A)'):undefined} 

@@ -58,20 +58,20 @@ export async function changePassword(oldPassword, newPassword, token){
 
 
 //training API functions
-export async function getNextTraining(token){
-    const res = await fetch(`${TRAINING_BASEURL}/Training/next`,{
-        method:'GET',
-        headers:{
-            'Content-Type' : 'application/json',
-            'Authorization' : `Bearer ${token}`,
-        },
-    });
-    if(!res.ok) throw new Error(`HTTP error! status ${res.status}`);
-    return res.json();
+export async function getNextTraining(token, step) {
+  const res = await fetch(`${TRAINING_BASEURL}/next?step=${step}`, {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`,
+    },
+  });
+  if (!res.ok) throw new Error(`HTTP error! status ${res.status}`);
+  return res.json();
 }
 
 export async function getTrainingById(token, id){
-    const res = await fetch(`${TRAINING_BASEURL}/Training/${id}`, {
+    const res = await fetch(`${TRAINING_BASEURL}/${id}`, {
         method: 'GET',
         headers: {
             'Content-Type' : 'application/json',
@@ -83,7 +83,7 @@ export async function getTrainingById(token, id){
 }
 
 export async function updateTrainingProgress(token,moduleId, watchSeconds){
-    const res = await fetch(`${TRAINING_BASEURL}/Training/progress`,{
+    const res = await fetch(`${TRAINING_BASEURL}/progress`,{
         method: 'POST',
         headers: {
             'Content-Type' : 'application/json',
@@ -96,7 +96,7 @@ export async function updateTrainingProgress(token,moduleId, watchSeconds){
 }
 
 export async function getTrainingStatus(token){
-    const res = await fetch(`${TRAINING_BASEURL}/Training/status`,{
+    const res = await fetch(`${TRAINING_BASEURL}/status`,{
         method: 'GET',
         headers: {
             'Content-Type' : 'application/json',
@@ -108,7 +108,7 @@ export async function getTrainingStatus(token){
 }
 
 export async function getCompletionReport(token){
-    const res = await fetch(`${TRAINING_BASEURL}/Training/completion-report`,{
+    const res = await fetch(`${TRAINING_BASEURL}/completion-report`,{
         method: 'GET',
         headers:{
             'Content-Type' : 'application/json',
