@@ -671,21 +671,23 @@ function App() {
           {success && <p className="success">{success}</p>}
         </div>
       )}
-      {mode === 'dashboard' && ( //dash mode with greeting cards
+      {mode === 'dashboard' && ( // dash mode with greeting cards
         <div className="dashboard-container">
-          <h1 className="greeting">Good {greeting},{firstName}</h1>
-          <div className="dash-grid">
+          <h1 className="greeting">Good {greeting}, {firstName}</h1>
+          <div className="dashboard-grid">
             <div className="dashboard-card" onClick={() => setMode('training')}>
               <h2>Training Audios</h2>
             </div>
             <div className="dashboard-card" onClick={() => setMode('changePassword')}>
               <h2>Account Management</h2>
             </div>
+            <div className="dashboard-card" onClick={handleLogout}>
+              <h2>Logout</h2>
+            </div>
+            <div className="dashboard-card" onClick={() => setMode('login')}>
+              <h2>Back to Dashboard</h2>
+            </div>
           </div>
-          <p className="logout-link" onClick={handleLogout}>Logout</p>
-          <p className="back-link" onClick={() => setMode('dashboard')}>
-        Back to dashboard
-      </p>
         </div>
       )}
       {mode === 'training' && (

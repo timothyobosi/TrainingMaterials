@@ -245,6 +245,7 @@ button:disabled {
 }
 
 /* Dashboard styles, seamless cards, animation for UX */
+/* Dashboard styles, seamless cards, animation for UX */
 .dashboard-container {
   width: 100%;
   max-width: 800px;
@@ -266,34 +267,44 @@ button:disabled {
 }
 
 .dashboard-card {
-  background: linear-gradient(135deg, #0d47a1, #010a13);
+  background: linear-gradient(135deg, #0e40d7, #010a13); /* Britam blue gradient */
   border-radius: 12px;
   padding: 2rem;
   color: white;
   cursor: pointer;
   transition: transform 0.3s ease, box-shadow 0.3s ease;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 6px 12px rgba(14, 64, 215, 0.3); /* Enhanced shadow with Britam blue tint */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.dashboard-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(14, 64, 215, 0.2),
+    transparent
+  );
+  animation: waveGlitter 7s ease-in-out infinite;
 }
 
 .dashboard-card:hover {
   transform: scale(1.05) translateY(-5px);
-  box-shadow: 0 8px 16px rgba(25, 118, 210, 0.4);
+  box-shadow: 0 10px 20px rgba(14, 64, 215, 0.5); /* Stronger hover effect */
 }
 
 .dashboard-card h2 {
-  margin: 1.5rem;
+  margin: 0;
   font-size: 1.2rem;
-}
-
-.logout-link {
-  cursor: pointer;
-  text-decoration: underline;
-  color: rgba(255, 255, 255, 0.7);
-  transition: color 0.3s ease;
-}
-
-.logout-link:hover {
-  color: white;
+  z-index: 1;
 }
 
 .training-container {
@@ -301,18 +312,6 @@ button:disabled {
   max-width: 450px;
   text-align: center;
   animation: fadeIn 0.5s ease-in-out;
-}
-
-.back-link {
-  cursor: pointer;
-  text-decoration: underline;
-  margin-top: 1rem;
-  color: rgba(255, 255, 255, 0.7);
-  transition: color 0.3s ease;
-}
-
-.back-link:hover {
-  color: white;
 }
 
 @keyframes fadeIn {
