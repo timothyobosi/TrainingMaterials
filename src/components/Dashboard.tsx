@@ -1,5 +1,6 @@
+// C:\Users\tobosi\BritamProjects\Britam-Training\src\components\Dashboard.tsx
 import { useState, useEffect } from "react";
-import { Box, Button, Card, CardContent, Grid, Typography } from "@mui/material";
+import { Box, Button, Card, CardContent, CircularProgress, FormControl, Grid, TextField, Typography } from "@mui/material";
 import { britamBlue, successColor } from "../data/colors";
 import { useNavigate } from "react-router-dom";
 import { changePassword } from "../api/auth";
@@ -61,15 +62,15 @@ const Dashboard: React.FC = () => {
     switch (activeTab) {
       case "Training materials":
         return (
-          <Typography>
-            Here you can access training materials. Content will be fetched from the training API.
+          <Typography sx={{ textAlign: "center" }}>
+            Content will be fetched from the training API.
           </Typography>
         );
       case "Test":
-        return <Typography>Take your training test here.</Typography>;
+        return <Typography sx={{ textAlign: "center" }}>Take your training test here.</Typography>;
       case "Account management":
         return (
-          <Box>
+          <Box sx={{ display: "flex", flexDirection: "column", gap: 2, maxWidth: "400px", margin: "0 auto" }}>
             <FormControl>
               <Typography sx={{ fontWeight: "bold", mb: "4px", color: britamBlue }}>Old Password</Typography>
               <TextField
@@ -105,8 +106,8 @@ const Dashboard: React.FC = () => {
             >
               {loading ? <CircularProgress size={24} color="inherit" /> : "Change Password"}
             </Button>
-            {error && <Typography color="error" sx={{ mt: 2 }}>{error}</Typography>}
-            {success && <Typography color={successColor} sx={{ mt: 2 }}>{success}</Typography>}
+            {error && <Typography color="error" sx={{ mt: 2, textAlign: "center" }}>{error}</Typography>}
+            {success && <Typography color={successColor} sx={{ mt: 2, textAlign: "center" }}>{success}</Typography>}
           </Box>
         );
       default:
@@ -130,37 +131,51 @@ const Dashboard: React.FC = () => {
       <Box sx={{ display: "flex", alignItems: "center", mb: 4 }}>
         <img src="/src/assets/images/Britam logo.png" alt="Britam logo" width={100} />
       </Box>
-      <Card sx={{ p: 4, borderRadius: 2, boxShadow: 2 }}>
-        <CardContent>
-          <Typography variant="h5" sx={{ fontWeight: "bold", mb: 2, color: britamBlue }}>
-            {`${getGreeting()}, ${firstName}!`}
-          </Typography>
-          <Box sx={{ mb: 4 }}>
-            <Button
-              variant={activeTab === "Training materials" ? "contained" : "outlined"}
-              sx={{ mr: 2, borderRadius: 50, textTransform: "capitalize" }}
-              onClick={() => setActiveTab("Training materials")}
-            >
-              Training materials
-            </Button>
-            <Button
-              variant={activeTab === "Test" ? "contained" : "outlined"}
-              sx={{ mr: 2, borderRadius: 50, textTransform: "capitalize" }}
-              onClick={() => setActiveTab("Test")}
-            >
-              Test
-            </Button>
-            <Button
-              variant="outlined"
-              sx={{ mr: 2, borderRadius: 50, textTransform: "capitalize" }}
-              onClick={handleLogout}
-            >
-              Logout
-            </Button>
-          </Box>
-          <Box>{renderContent()}</Box>
-        </CardContent>
-      </Card>
+      <Grid container spacing={4} direction="column" alignItems="center">
+        <Grid item xs={12}>
+          <Card sx={{ p: 2, borderRadius: 2, boxShadow: 2, width: "100%", maxWidth: "600px" }}>
+            <CardContent>
+              <Typography variant="h5" sx={{ fontWeight: "bold", mb: 2, color: britamBlue, textAlign: "center" }}>
+                {`${getGreeting()}, ${firstName}!`}
+              </Typography>
+            </CardContent>
+          </Card>
+        </Grid>
+        <Grid item xs={12}>
+          <Card sx={{ p: 2, borderRadius: 2, boxShadow: 2, width: "100%", maxWidth: "600px" }}>
+            <CardContent>
+              <Box sx={{ mb: 2, display: "flex", justifyContent: "center", gap: 2 }}>
+                <Button
+                  variant={activeTab === "Training materials" ? "contained" : "outlined"}
+                  sx={{ mr: 2, borderRadius: 50, textTransform: "capitalize" }}
+                  onClick={() => setActiveTab("Training materials")}
+                >
+                  Training materials
+                </Button>
+                <Button
+                  variant={activeTab === "Test" ? "contained" : "outlined"}
+                  sx={{ mr: 2, borderRadius: 50, textTransform: "capitalize" }}
+                  onClick={() => setActiveTab("Test")}
+                >
+                  Test
+                </Button>
+                <Button
+                  variant="outlined"
+                  sx={{ mr: 2, borderRadius: 50, textTransform: "capitalize" }}
+                  onClick={handleLogout}
+                >
+                  Logout
+                </Button>
+              </Box>
+            </CardContent>
+          </Card>
+        </Grid>
+        <Grid item xs={12}>
+          <Card sx={{ p: 2, borderRadius: 2, boxShadow: 2, width: "100%", maxWidth: "600px" }}>
+            <CardContent sx={{ display: "flex", justifyContent: "center", alignItems: "center" }}>{renderContent()}</CardContent>
+          </Card>
+        </Grid>
+      </Grid>
     </Box>
   );
 };
