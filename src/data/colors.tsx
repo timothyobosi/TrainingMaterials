@@ -1,0 +1,10 @@
+export const britamBlue = "#007DC3";
+export const darkGray700 = "#344054";
+export const gray500 = "#667085";
+export const lightBlue50 = "#F0F9FF";
+export const lightBlue600 = "#B9E6FE";
+export const lightGray600 = "#475467";
+export const lightGray300 = "#D0D5DD";
+export const lightGray200 = "#EAECF0";
+export const lightGray100 = "#F2F4F7";
+export const successColor = "#17B26A";
