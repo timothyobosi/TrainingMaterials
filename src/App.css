@@ -1,24 +1,14 @@
 .login-form {
-  width: 95%;          /* use more screen width */
-  width: 350px;    /* increase cap from 400px → 600px */
-  min-height: 250px;   /* ensures it’s taller */
-  padding: 3rem;       /* more breathing space */
+  width: 350px;       /* keep width as you want */
+  min-height: 250px;
+  padding: 3rem;
   background: white;
   border-radius: 16px;
   box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
   display: flex;
   flex-direction: column;
-  justify-content: center; /* center content vertically */
-
-  /* centering magic */
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-
-
+  justify-content: center;
 }
-
 
 .login-form img {
   margin-bottom: 1rem;
