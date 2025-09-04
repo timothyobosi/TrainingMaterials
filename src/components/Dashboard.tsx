@@ -1,9 +1,9 @@
-// C:\Users\tobosi\BritamProjects\Britam-Training\src\components\Dashboard.tsx
 import { useState, useEffect } from "react";
 import { Box, Button, Card, CardContent, CircularProgress, FormControl, Grid, TextField, Typography } from "@mui/material";
 import { britamBlue, successColor } from "../data/colors";
 import { useNavigate } from "react-router-dom";
-import { changePassword } from "../api/auth";
+import { changePassword, getNextTraining, updateTrainingProgress } from "../api/auth";
+import AudioPlayer from "./AudioPlayer";
 
 const Dashboard: React.FC = () => {
   const navigate = useNavigate();
@@ -16,6 +16,10 @@ const Dashboard: React.FC = () => {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(false);
+  const [trainingData, setTrainingData] = useState(null);
+  const [currentStep, setCurrentStep] = useState(1);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [audioCompleted, setAudioCompleted] = useState({});
   const token = localStorage.getItem("britamToken") || "";
 
   const getGreeting = () => {
@@ -58,12 +62,96 @@ const Dashboard: React.FC = () => {
     }
   };
 
+  const fetchTrainingData = async (step = 1) => {
+    try {
+      setLoading(true);
+      const data = await getNextTraining(token, step);
+      setTrainingData(data);
+      setAudioCompleted((prev) => ({ ...prev, [step]: data.isComplete || false }));
+      setLoading(false);
+    } catch (e) {
+      setError("Failed to fetch training data: " + e.message);
+      setLoading(false);
+    }
+  };
+
+  const handlePlayPause = (play) => setIsPlaying(play);
+
+  const handleEnded = async () => {
+    setAudioCompleted((prev) => ({ ...prev, [currentStep]: true }));
+    setIsPlaying(false);
+    await updateTrainingProgress(token, trainingData.moduleId, trainingData.duration * 60); // Convert duration to seconds
+  };
+
+  const handleNext = async () => {
+    if (currentStep < 4 && audioCompleted[currentStep]) {
+      setCurrentStep((prev) => prev + 1);
+      await fetchTrainingData(currentStep + 1);
+    } else if (currentStep === 4 && audioCompleted[currentStep]) {
+      setCurrentStep(5); // Mark as complete
+      setTrainingData(null);
+    }
+  };
+
+  const handlePrevious = () => {
+    if (currentStep > 1) {
+      setCurrentStep((prev) => prev - 1);
+      fetchTrainingData(currentStep - 1);
+    }
+  };
+
+  const handleRestart = () => {
+    setAudioCompleted((prev) => ({ ...prev, [currentStep]: false }));
+    setIsPlaying(true);
+  };
+
+  useEffect(() => {
+    if (!token) navigate("/login");
+    if (activeTab === "Training materials" && !trainingData) {
+      fetchTrainingData();
+    }
+  }, [token, navigate, activeTab, trainingData]);
+
   const renderContent = () => {
     switch (activeTab) {
       case "Training materials":
-        return (
+        return trainingData ? (
+          <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 2 }}>
+            <Typography sx={{ textAlign: "center" }}>
+              Audio {currentStep} of 4: {trainingData.title}
+            </Typography>
+            <AudioPlayer
+              src={`https://brm-partners.britam.com${trainingData.filePath}`}
+              onEnded={handleEnded}
+              onRestart={handleRestart}
+              isPlaying={isPlaying}
+              onPlayPause={handlePlayPause}
+              aria-label={`Audio ${currentStep} player`}
+            />
+            <Box sx={{ display: "flex", gap: 2 }}>
+              <Button
+                variant="outlined"
+                sx={{ borderRadius: 50, textTransform: "capitalize" }}
+                onClick={handlePrevious}
+                disabled={currentStep === 1}
+              >
+                Previous
+              </Button>
+              <Button
+                variant="contained"
+                sx={{ backgroundColor: britamBlue, borderRadius: 50, textTransform: "capitalize" }}
+                onClick={handleNext}
+                disabled={!audioCompleted[currentStep] && currentStep < 5}
+              >
+                {currentStep === 4 && audioCompleted[4] ? "Finish" : "Next"}
+              </Button>
+            </Box>
+            {loading && <CircularProgress />}
+            {error && <Typography color="error" sx={{ mt: 2, textAlign: "center" }}>{error}</Typography>}
+          </Box>
+        ) : (
           <Typography sx={{ textAlign: "center" }}>
-            Content will be fetched from the training API.
+            {loading ? "Loading training materials..." : "Content will be fetched from the training API."}
           </Typography>
         );
       case "Test":
@@ -114,10 +202,6 @@ const Dashboard: React.FC = () => {
         return null;
     }
   };
-
-  useEffect(() => {
-    if (!token) navigate("/login");
-  }, [token, navigate]);
 
   return (
     <Box
