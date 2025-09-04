@@ -1,29 +1,36 @@
 .login-form {
-  width: 100%;
-  max-width: 450px;
-  padding: 1rem;
+  width: 95%;          /* use more screen width */
+  width: 350px;    /* increase cap from 400px → 600px */
+  min-height: 250px;   /* ensures it’s taller */
+  padding: 3rem;       /* more breathing space */
   background: white;
-  border-radius: 20px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-  position: relative;
-  overflow: hidden;
+  border-radius: 16px;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+  display: flex;
+  flex-direction: column;
+  justify-content: center; /* center content vertically */
+
+  /* centering magic */
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+
+
 }
+
 
 .login-form img {
   margin-bottom: 1rem;
   display: block;
   margin-left: auto;
   margin-right: auto;
+  max-width: 150px;       /* shrink logo if screen small */
+  height: auto;
 }
 
 .login-form form {
   display: flex;
   flex-direction: column;
   gap: 1rem;
-}
-
-@keyframes waveGlitter {
-  0% { transform: translateX(-100%); }
-  50% { transform: translateX(100%); }
-  100% { transform: translateX(-100%); }
 }

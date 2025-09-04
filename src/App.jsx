@@ -3,7 +3,7 @@ import { RouterProvider, createBrowserRouter } from "react-router-dom";
 import { Toaster } from "sonner";
 import Login from "./components/Login";
 import Dashboard from "./components/Dashboard";
-import './App.css'; // Ensure this is included
+import './App.css'; 
 
 const App = () => {
   const [token, setToken] = useState(localStorage.getItem("britamToken") || "");

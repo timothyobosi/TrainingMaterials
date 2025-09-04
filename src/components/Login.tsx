@@ -159,13 +159,13 @@ const Login: React.FC = () => {
         <Box mt={8} mr={18} className="flex flex-col login-form">
           <img
             src="/src/assets/images/Britam logo.png"
-            width={200}
+            width={250}
             alt="Britam logo"
             className="mb-16 self-center"
           />
           <form className="flex flex-col gap-4">
             <FormControl>
-              <Typography sx={{ fontWeight: "bold", mb: "4px" }}>Email</Typography>
+              <Typography sx={{ fontWeight: "bold", mb: "4px", color: britamBlue }}>Email</Typography>
               <TextField
                 type="email"
                 value={email}
@@ -182,7 +182,7 @@ const Login: React.FC = () => {
               />
             </FormControl>
             <FormControl>
-              <Box sx={{ display: "flex", justifyContent: "space-between", mb: "4px" }}>
+              <Box sx={{ display: "flex", justifyContent: "space-between", mb: "4px", color: britamBlue }}>
                 <Typography sx={{ fontWeight: "bold" }}>Password</Typography>
                 <a
                   style={{ color: britamBlue, fontSize: "12px", fontWeight: "bold", cursor: "pointer" }}
