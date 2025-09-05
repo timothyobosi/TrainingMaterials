@@ -1,5 +1,15 @@
 import { useState, useEffect } from "react";
-import { Box, Button, Card, CardContent, CircularProgress, FormControl, Grid, TextField, Typography } from "@mui/material";
+import {
+  Box,
+  Button,
+  Card,
+  CardContent,
+  CircularProgress,
+  FormControl,
+  Grid,
+  TextField,
+  Typography,
+} from "@mui/material";
 import { britamBlue, successColor } from "../data/colors";
 import { useNavigate } from "react-router-dom";
 import { changePassword, getNextTraining, updateTrainingProgress } from "../api/auth";
@@ -16,10 +26,10 @@ const Dashboard: React.FC = () => {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(false);
-  const [trainingData, setTrainingData] = useState(null);
+  const [trainingData, setTrainingData] = useState<any>(null);
   const [currentStep, setCurrentStep] = useState(1);
   const [isPlaying, setIsPlaying] = useState(false);
-  const [audioCompleted, setAudioCompleted] = useState({});
+  const [audioCompleted, setAudioCompleted] = useState<Record<string, boolean>>({});
   const token = localStorage.getItem("britamToken") || "";
 
   const getGreeting = () => {
@@ -55,40 +65,44 @@ const Dashboard: React.FC = () => {
       } else {
         setError(data.message || "Failed to change password");
       }
-    } catch (e) {
+    } catch (e: any) {
       setError("Network error: " + e.message);
     } finally {
       setLoading(false);
     }
   };
 
-  const fetchTrainingData = async (step = 1) => {
+  const fetchTrainingData = async () => {
     try {
       setLoading(true);
-      const data = await getNextTraining(token, step);
+      const data = await getNextTraining(token);
       setTrainingData(data);
-      setAudioCompleted((prev) => ({ ...prev, [step]: data.isComplete || false }));
+      setAudioCompleted((prev) => ({ ...prev, [data.moduleId]: data.isComplete || false }));
+      setCurrentStep((prev) => (data.isComplete && prev < 4 ? prev + 1 : prev));
       setLoading(false);
-    } catch (e) {
+    } catch (e: any) {
       setError("Failed to fetch training data: " + e.message);
       setLoading(false);
     }
   };
 
-  const handlePlayPause = (play) => setIsPlaying(play);
+  const handlePlayPause = (play: boolean) => setIsPlaying(play);
 
   const handleEnded = async () => {
-    setAudioCompleted((prev) => ({ ...prev, [currentStep]: true }));
+    setAudioCompleted((prev) => ({ ...prev, [trainingData.moduleId]: true }));
     setIsPlaying(false);
-    await updateTrainingProgress(token, trainingData.moduleId, trainingData.duration * 60); // Convert duration to seconds
+    try {
+      await updateTrainingProgress(token, trainingData.moduleId, trainingData.duration * 60);
+    } catch (e: any) {
+      console.warn("Progress update failed due to CORS: ", e.message);
+    }
   };
 
   const handleNext = async () => {
-    if (currentStep < 4 && audioCompleted[currentStep]) {
-      setCurrentStep((prev) => prev + 1);
-      await fetchTrainingData(currentStep + 1);
-    } else if (currentStep === 4 && audioCompleted[currentStep]) {
-      setCurrentStep(5); // Mark as complete
+    if (currentStep < 4 && audioCompleted[trainingData.moduleId]) {
+      await fetchTrainingData();
+    } else if (currentStep === 4 && audioCompleted[trainingData.moduleId]) {
+      setCurrentStep(5);
       setTrainingData(null);
     }
   };
@@ -96,12 +110,12 @@ const Dashboard: React.FC = () => {
   const handlePrevious = () => {
     if (currentStep > 1) {
       setCurrentStep((prev) => prev - 1);
-      fetchTrainingData(currentStep - 1);
+      fetchTrainingData();
     }
   };
 
   const handleRestart = () => {
-    setAudioCompleted((prev) => ({ ...prev, [currentStep]: false }));
+    setAudioCompleted((prev) => ({ ...prev, [trainingData.moduleId]: false }));
     setIsPlaying(true);
   };
 
@@ -141,9 +155,9 @@ const Dashboard: React.FC = () => {
                 variant="contained"
                 sx={{ backgroundColor: britamBlue, borderRadius: 50, textTransform: "capitalize" }}
                 onClick={handleNext}
-                disabled={!audioCompleted[currentStep] && currentStep < 5}
+                disabled={!audioCompleted[trainingData.moduleId] && currentStep < 5}
               >
-                {currentStep === 4 && audioCompleted[4] ? "Finish" : "Next"}
+                {currentStep === 4 && audioCompleted[trainingData.moduleId] ? "Finish" : "Next"}
               </Button>
             </Box>
             {loading && <CircularProgress />}
@@ -156,110 +170,72 @@ const Dashboard: React.FC = () => {
         );
       case "Test":
         return <Typography sx={{ textAlign: "center" }}>Take your training test here.</Typography>;
-      case "Account management":
-        return (
-          <Box sx={{ display: "flex", flexDirection: "column", gap: 2, maxWidth: "400px", margin: "0 auto" }}>
-            <FormControl>
-              <Typography sx={{ fontWeight: "bold", mb: "4px", color: britamBlue }}>Old Password</Typography>
-              <TextField
-                type={showPassword ? "text" : "password"}
-                value={oldPassword}
-                onChange={(e) => setOldPassword(e.target.value)}
-                slotProps={{ input: { style: { borderRadius: 10 } } }}
-              />
-            </FormControl>
-            <FormControl>
-              <Typography sx={{ fontWeight: "bold", mb: "4px", color: britamBlue }}>New Password</Typography>
-              <TextField
-                type={showPassword ? "text" : "password"}
-                value={newPassword}
-                onChange={(e) => setNewPassword(e.target.value)}
-                slotProps={{ input: { style: { borderRadius: 10 } } }}
-              />
-            </FormControl>
-            <FormControl>
-              <Typography sx={{ fontWeight: "bold", mb: "4px", color: britamBlue }}>Confirm Password</Typography>
-              <TextField
-                type={showPassword ? "text" : "password"}
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                slotProps={{ input: { style: { borderRadius: 10 } } }}
-              />
-            </FormControl>
-            <Button
-              variant="contained"
-              sx={{ mt: "1em", backgroundColor: britamBlue, borderRadius: 50, padding: "10px 0" }}
-              onClick={handleChangePassword}
-              disabled={loading}
-            >
-              {loading ? <CircularProgress size={24} color="inherit" /> : "Change Password"}
-            </Button>
-            {error && <Typography color="error" sx={{ mt: 2, textAlign: "center" }}>{error}</Typography>}
-            {success && <Typography color={successColor} sx={{ mt: 2, textAlign: "center" }}>{success}</Typography>}
-          </Box>
-        );
       default:
         return null;
     }
   };
 
   return (
-    <Box
-      sx={{
-        width: "100%",
-        minHeight: "100vh",
-        backgroundColor: "#f5f5f5",
-        p: 4,
-      }}
-    >
-      <Box sx={{ display: "flex", alignItems: "center", mb: 4 }}>
-        <img src="/src/assets/images/Britam logo.png" alt="Britam logo" width={100} />
+    <Box sx={{ display: "flex", width: "100%", minHeight: "100vh", backgroundColor: "#f5f5f5" }}>
+      {/* Sidebar */}
+      <Box
+        sx={{
+          width: 200,
+          backgroundColor: "white",
+          borderRight: "1px solid #ddd",
+          p: 2,
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "flex-start",
+        }}
+      >
+        <img src="/src/assets/images/Britam logo.png" alt="Britam logo" width={120} style={{ marginBottom: 20 }} />
+        <Button
+          variant={activeTab === "Training materials" ? "contained" : "outlined"}
+          sx={{ mb: 2, borderRadius: 50, textTransform: "capitalize", width: "100%" }}
+          onClick={() => setActiveTab("Training materials")}
+        >
+          Training materials
+        </Button>
+        <Button
+          variant={activeTab === "Test" ? "contained" : "outlined"}
+          sx={{ mb: 2, borderRadius: 50, textTransform: "capitalize", width: "100%" }}
+          onClick={() => setActiveTab("Test")}
+        >
+          Test
+        </Button>
+        <Button
+          variant="outlined"
+          sx={{ borderRadius: 50, textTransform: "capitalize", width: "100%" }}
+          onClick={handleLogout}
+        >
+          Logout
+        </Button>
       </Box>
-      <Grid container spacing={4} direction="column" alignItems="center">
-        <Grid item xs={12}>
-          <Card sx={{ p: 2, borderRadius: 2, boxShadow: 2, width: "100%", maxWidth: "600px" }}>
-            <CardContent>
-              <Typography variant="h5" sx={{ fontWeight: "bold", mb: 2, color: britamBlue, textAlign: "center" }}>
-                {`${getGreeting()}, ${firstName}!`}
-              </Typography>
-            </CardContent>
-          </Card>
+
+      {/* Main content */}
+      <Box sx={{ flex: 1, px:2, py: 4 }}>
+        <Box sx={{maxWidth:"900px", mx:"auto"}}>
+        <Grid container spacing={4} direction="column" >
+          <Grid item xs={12}>
+            <Card sx={{ p: 2, borderRadius: 2, boxShadow: 2, width: "100%" }}>
+              <CardContent>
+                <Typography variant="h5" sx={{ fontWeight: "bold", mb: 2, color: britamBlue, textAlign: "left" }}>
+                  {`${getGreeting()}, ${firstName}!`}
+                </Typography>
+              </CardContent>
+            </Card>
+          </Grid>
+          <Grid item xs={12}>
+            <Card sx={{ p: 2, borderRadius: 2, boxShadow: 2, width: "100%", maxWidth: "600px" }}>
+              <CardContent sx={{ display: "flex", justifyContent: "center", alignItems: "center" }}>
+                {renderContent()}
+              </CardContent>
+            </Card>
+          </Grid>
         </Grid>
-        <Grid item xs={12}>
-          <Card sx={{ p: 2, borderRadius: 2, boxShadow: 2, width: "100%", maxWidth: "600px" }}>
-            <CardContent>
-              <Box sx={{ mb: 2, display: "flex", justifyContent: "center", gap: 2 }}>
-                <Button
-                  variant={activeTab === "Training materials" ? "contained" : "outlined"}
-                  sx={{ mr: 2, borderRadius: 50, textTransform: "capitalize" }}
-                  onClick={() => setActiveTab("Training materials")}
-                >
-                  Training materials
-                </Button>
-                <Button
-                  variant={activeTab === "Test" ? "contained" : "outlined"}
-                  sx={{ mr: 2, borderRadius: 50, textTransform: "capitalize" }}
-                  onClick={() => setActiveTab("Test")}
-                >
-                  Test
-                </Button>
-                <Button
-                  variant="outlined"
-                  sx={{ mr: 2, borderRadius: 50, textTransform: "capitalize" }}
-                  onClick={handleLogout}
-                >
-                  Logout
-                </Button>
-              </Box>
-            </CardContent>
-          </Card>
-        </Grid>
-        <Grid item xs={12}>
-          <Card sx={{ p: 2, borderRadius: 2, boxShadow: 2, width: "100%", maxWidth: "600px" }}>
-            <CardContent sx={{ display: "flex", justifyContent: "center", alignItems: "center" }}>{renderContent()}</CardContent>
-          </Card>
-        </Grid>
-      </Grid>
+        </Box>
+      </Box>
     </Box>
   );
 };
