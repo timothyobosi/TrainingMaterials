@@ -69,6 +69,7 @@ const Login: React.FC = () => {
         localStorage.setItem("britamToken", data.token);
         const fname = data.name.split(" ")[0];
         localStorage.setItem("britamFirstName", fname);
+        localStorage.setItem("britamAgentId", data.agentId);
         navigate("/dashboard");
       } else if (data.status === "PasswordNotSet") {
         setMode("setPassword");
